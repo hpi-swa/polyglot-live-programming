@@ -1,0 +1,72 @@
+{
+    "example_named": {
+        "prefix": "<Example",
+        "body": [
+          "$LINE_COMMENT <Example :name=\"${1:exampleName}\" ${2:parameter1}=\"${3:value1}\" />"
+        ],
+        "description": "Adds an example for Babylonian analysis"
+    },
+    "example_unnamed": {
+        "prefix": "<Example",
+        "body": [
+          "$LINE_COMMENT <Example ${1:parameter1}=\"${2:value1}\" />"
+        ],
+        "description": "Adds an unnamed example for Babylonian analysis"
+    },
+    "probe_definition": {
+        "prefix": "<Probe",
+        "body": [
+          "$LINE_COMMENT <Probe />"
+        ],
+        "description": "Adds a probe for the next line for Babylonian analysis"
+    },
+    "probe_definition_for_example": {
+        "prefix": "<Probe",
+        "body": [
+          "$LINE_COMMENT <Probe :example=\"${1:exampleName}\" />"
+        ],
+        "description": "Adds a probe for the next line for a specific example for Babylonian analysis"
+    },
+    "probe_expression": {
+        "prefix": "<Probe",
+        "body": [
+          "$LINE_COMMENT <Probe :expression=\"${1:1 + 2}\" />"
+        ],
+        "description": "Adds an expression probe for Babylonian analysis"
+    },
+    "probe_expression_for_example": {
+        "prefix": "<Probe",
+        "body": [
+          "$LINE_COMMENT <Probe :example=\"${1:exampleName}\" :expression=\"${2:1 + 2}\" />"
+        ],
+        "description": "Adds an expression probe for a specific example for Babylonian analysis"
+    },
+    "assertion_expected": {
+        "prefix": "<Assertion",
+        "body": [
+          "$LINE_COMMENT <Assertion :expected=\"${1:expectedValue}\" />"
+        ],
+        "description": "Adds an assertion for Babylonian analysis"
+    },
+    "assertion_expected_for_example": {
+        "prefix": "<Assertion",
+        "body": [
+          "$LINE_COMMENT <Assertion :example=\"${1:exampleName}\" :expected=\"${2:expectedValue}\" />"
+        ],
+        "description": "Adds an assertion for a specific example for Babylonian analysis"
+    },
+    "assertion_expression": {
+        "prefix": "<Assertion",
+        "body": [
+          "$LINE_COMMENT <Assertion :expression=\"${1:2 == 1 + 1}\" />"
+        ],
+        "description": "Adds an assertion with expression for Babylonian analysis"
+    },
+    "assertion_expression_for_example": {
+        "prefix": "<Assertion",
+        "body": [
+          "$LINE_COMMENT <Assertion :example=\"${1:exampleName}\" :expression=\"${2:2 == 1 + 1}\" />"
+        ],
+        "description": "Adds an assertion with expression for a specific example for Babylonian analysis"
+    }
+}

@@ -1,0 +1,115 @@
+{
+	"name": "vscode-live-programming",
+	"displayName": "HPI-SWA Live Programming for VS Code",
+	"description": "Live Programming for VSCode powered by GraalVM",
+	"publisher": "hpi-swa",
+	"author": {
+		"name": "Software Architecture Group, Hasso Plattner Institute"
+	},
+	"version": "0.0.1",
+	"homepage": "https://github.com/hpi-swa-lab/vscode-live-programming",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/hpi-swa-lab/vscode-live-programming.git"
+	},
+	"bugs": {
+		"url": "https://github.com/hpi-swa-lab/vscode-live-programming/issues"
+	},
+	"engines": {
+		"vscode": "^1.49.0"
+	},
+	"categories": [
+		"Programming Languages",
+		"Snippets",
+		"Other"
+	],
+	"activationEvents": [
+		"onCommand:vscode-live-programming.displayExpression",
+		"onCommand:vscode-live-programming.toggleBabylonianAnalysis"
+	],
+	"extensionDependencies": [
+		"oracle-labs-graalvm.graalvm"
+	],
+	"main": "./out/extension.js",
+	"contributes": {
+		"commands": [
+			{
+				"command": "vscode-live-programming.displayExpression",
+				"title": "Display Expression",
+				"category": "Live Programming"
+			},
+			{
+				"command": "vscode-live-programming.toggleBabylonianAnalysis",
+				"title": "Toggle Babylonian Analysis",
+				"category": "Live Programming"
+			}
+		],
+		"keybindings": [
+			{
+				"command": "vscode-live-programming.displayExpression",
+				"key": "ctrl+d"
+			},
+			{
+				"command": "vscode-live-programming.toggleBabylonianAnalysis",
+				"key": "ctrl+b"
+			}
+		],
+		"menus": {
+			"editor/context": [
+				{
+					"command": "vscode-live-programming.displayExpression"
+				},
+				{
+					"command": "vscode-live-programming.toggleBabylonianAnalysis"
+				}
+			]
+		},
+		"snippets": [
+			{
+				"language": "javascript",
+				"path": "./snippets/babylonian-snippets.json"
+			},
+			{
+				"language": "python",
+				"path": "./snippets/babylonian-snippets.json"
+			},
+			{
+				"language": "r",
+				"path": "./snippets/babylonian-snippets.json"
+			},
+			{
+				"language": "ruby",
+				"path": "./snippets/babylonian-snippets.json"
+			}
+		],
+		"views": {
+			"explorer": [
+				{
+					"id": "displayExpressionInfo",
+					"name": "Display Expression Info"
+				}
+			]
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"lint": "eslint src --ext ts",
+		"watch": "tsc -watch -p ./",
+		"pretest": "npm run compile && npm run lint",
+		"test": "node ./out/test/runTest.js"
+	},
+	"devDependencies": {
+		"@types/vscode": "^1.49.0",
+		"@types/glob": "^7.1.3",
+		"@types/mocha": "^8.0.0",
+		"@types/node": "^12.11.7",
+		"eslint": "^7.9.0",
+		"@typescript-eslint/eslint-plugin": "^4.1.1",
+		"@typescript-eslint/parser": "^4.1.1",
+		"glob": "^7.1.6",
+		"mocha": "^8.1.3",
+		"typescript": "^4.0.2",
+		"vscode-test": "^1.4.0"
+	}
+}
