@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { pathToFileURL } from 'url';
 
 interface DisplayExpressionInfo {
+    expression: string;
     displayString: string;
     error: boolean;
     interopProperties: string[];
@@ -16,14 +17,17 @@ interface DisplayExpressionInfo {
 class ObjectExplorerItem extends vscode.TreeItem {
     children: ObjectExplorerItem[]|undefined;
 
-    constructor(label: string, description: string, children? : ObjectExplorerItem[]) {
+    constructor(label: string, description: string, iconId = '', children? : ObjectExplorerItem[]) {
         super(label, children === undefined ? vscode.TreeItemCollapsibleState.None : vscode.TreeItemCollapsibleState.Collapsed);
         this.description = description;
         this.children = children;
+        if (iconId.length > 0) {
+            this.iconPath = new vscode.ThemeIcon(iconId);
+        }
     }
 }
 
-let currentObjectInfo: ObjectExplorerItem[] = [ new ObjectExplorerItem('', 'Display an expression first...') ];
+let currentObjectInfo: ObjectExplorerItem[] = [ new ObjectExplorerItem('', 'Display an expression first...', 'info') ];
 
 function displayExpression() {
     const editor = vscode.window.activeTextEditor;
@@ -77,12 +81,15 @@ function requestDisplayExpression(editor: vscode.TextEditor, selectedRange: vsco
 let objectExplorerProvider: ObjectExplorerTreeDataProvider|undefined;
 
 function updateObjectExplorer(info: DisplayExpressionInfo) {
-    currentObjectInfo = [new ObjectExplorerItem(info.displayString, 'displayString')];
+    currentObjectInfo = [
+        new ObjectExplorerItem(info.expression.split('\n').join(' '), 'expression', 'code'),
+        new ObjectExplorerItem(info.displayString, 'displayString', 'symbol-string')
+    ];
     if (info.metaQualifiedName !== undefined) {
-        currentObjectInfo.push(new ObjectExplorerItem(info.metaQualifiedName, 'metaQualifiedName'));
+        currentObjectInfo.push(new ObjectExplorerItem(info.metaQualifiedName, 'metaQualifiedName', 'dash'));
     }
     if (info.metaSimpleName !== undefined) {
-        currentObjectInfo.push(new ObjectExplorerItem(info.metaSimpleName, 'metaSimpleName'));
+        currentObjectInfo.push(new ObjectExplorerItem(info.metaSimpleName, 'metaSimpleName', 'dash'));
     }
 
     if (info.interopProperties.length > 0) {
@@ -90,7 +97,7 @@ function updateObjectExplorer(info: DisplayExpressionInfo) {
         for (let index = 0; index < info.interopProperties.length; index++) {
             interopProperties.push(new ObjectExplorerItem(info.interopProperties[index], ''));
         }
-        currentObjectInfo.push(new ObjectExplorerItem('<Interop Properties>', '', interopProperties));
+        currentObjectInfo.push(new ObjectExplorerItem('<Interop Properties>', '', 'symbol-property', interopProperties));
     }
 
     if (info.memberNames !== undefined && info.memberNames.length > 0 && info.memberDisplayStrings !== undefined) {
@@ -103,7 +110,7 @@ function updateObjectExplorer(info: DisplayExpressionInfo) {
             }
         }
         members.sort((a, b) => a.label! > b.label! ? 1 : -1);
-        currentObjectInfo.push(new ObjectExplorerItem('<Interop Members>', '', members));
+        currentObjectInfo.push(new ObjectExplorerItem('<Interop Members>', '', 'package', members));
     }
     if (info.elements !== undefined) {
         let elements: ObjectExplorerItem[] = [];
@@ -113,7 +120,7 @@ function updateObjectExplorer(info: DisplayExpressionInfo) {
                 elements.push(new ObjectExplorerItem(element, `#${index}`));
             }
         }
-        currentObjectInfo.push(new ObjectExplorerItem('<Interop Elements>', '', elements));
+        currentObjectInfo.push(new ObjectExplorerItem('<Interop Elements>', '', 'list-ordered', elements));
     }
     refreshObjectExplorer();
 }
@@ -129,7 +136,8 @@ function refreshObjectExplorer() {
 export function initializeDisplayExpression(context: vscode.ExtensionContext): void {
     context.subscriptions.push(vscode.commands.registerCommand('vscode-live-programming.displayExpression', () => {
 		displayExpression();
-	}));
+    }));
+    refreshObjectExplorer();
 }
 
 class ObjectExplorerTreeDataProvider implements vscode.TreeDataProvider<vscode.TreeItem> {

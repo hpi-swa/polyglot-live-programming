@@ -24,8 +24,7 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:vscode-live-programming.displayExpression",
-		"onCommand:vscode-live-programming.toggleBabylonianAnalysis"
+		"*"
 	],
 	"extensionDependencies": [
 		"oracle-labs-graalvm.graalvm"

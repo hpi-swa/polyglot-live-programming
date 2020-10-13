@@ -114,8 +114,8 @@ export function initializeBabylonianAnalysis(context: vscode.ExtensionContext) {
 function registerSetDecorationHandler() : void {
 	vscode.commands.getCommands().then((commands: string[]) => {
 		if (commands.includes('extension.graalvm.registerLSPNotificationHandler')) {
-			vscode.commands.executeCommand('extension.graalvm.registerLSPNotificationHandler', PUBLISH_DECORATIONS_REQUEST, publishDecorations).then((value) => {
-				if (!value) {
+			vscode.commands.executeCommand('extension.graalvm.registerLSPNotificationHandler', PUBLISH_DECORATIONS_REQUEST, publishDecorations).then((result) => {
+				if(!result) {
 					console.error("Failed to register setDecorations notification handler.");		
 				}
 			});
