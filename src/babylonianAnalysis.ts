@@ -170,12 +170,11 @@ function pushProbeWithMultipleObservedValues(tableData: string[][], fileUri: str
 		let result;
 		if (index < numberOfObservedValues) {
 			const value =  probe.observedValues[index];
-			const text = value.error ? value.error : value.displayString;
-			result = `[${truncate(text, 20)}](${createProbeInspectionUrl(fileUri, lineIndex, probe.exampleName, index)}`;
+			result = `[${truncate(value.error ? value.error : value.displayString, 20)}](${createProbeInspectionUrl(fileUri, lineIndex, probe.exampleName, index)})`;
 		} else {
 			result = '';
 		}
-		tableData[1 + index].push(index < numberOfObservedValues ? `[${truncate(probe.observedValues[index].displayString, 20)}](${createProbeInspectionUrl(fileUri, lineIndex, probe.exampleName, index)}` : '');
+		tableData[1 + index].push(result);
 	}
 }
 
