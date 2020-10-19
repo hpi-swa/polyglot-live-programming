@@ -27,9 +27,9 @@ class VSCodeExtensionProject(mx.ArchivableProject):
     def getResults(self, replaceVar=False):
         results = []
         for root, _, files in os.walk(self.output_dir()):
-            for file in files:
-                if file.endswith(".vsix"):
-                    results.append(join(root, file))
+            for f in files:
+                if f.endswith(".vsix"):
+                    results.append(join(root, f))
         return results
 
     def getBuildTask(self, args):
@@ -64,8 +64,8 @@ class VSCodeExtensionBuildTask(mx.ArchivableBuildTask):
         mx.run([vsce, 'package'], nonZeroIsFatal=True, cwd=self.subject.dir)
 
     def clean(self, forBuild=False):
-        for file in self.subject.getResults():
-            os.remove(file)
+        for f in self.subject.getResults():
+            os.remove(f)
         for path in [join(self.subject.dir, m) for m in ['out', 'node_modules']]:
             if exists(path):
                 mx.rmtree(path)

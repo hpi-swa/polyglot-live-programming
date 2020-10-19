@@ -14,6 +14,11 @@ suite = {
     "versionConflictResolution": "latest",
 
     "version": "20.2.0-dev",
+    "live-programming:dependencyMap": {
+        "jdk11": "11.0.8",
+        "jdk11_update": "10",
+        "jvmci": "jvmci-20.3-b01",
+    },
 
     "release": False,
     "groupId": "de.hpi.swa.liveprogramming",
