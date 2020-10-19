@@ -1,33 +1,14 @@
+/*
+ * Copyright (c) 2020, Software Architecture Group, Hasso Plattner Institute.
+ *
+ * Licensed under the MIT License.
+ */
+
+'use strict';
+
 import * as vscode from 'vscode';
 import { pathToFileURL } from 'url';
-
-interface DisplayExpressionInfo {
-    expression: string;
-    displayString: string;
-    error: boolean;
-    interopProperties: string[];
-    metaQualifiedName: string|undefined;
-    metaSimpleName: string|undefined;
-    memberNames: string[]|undefined;
-    memberDisplayStrings: string[]|undefined;
-    elements: string[]|undefined;
-}
-
-
-class ObjectExplorerItem extends vscode.TreeItem {
-    children: ObjectExplorerItem[]|undefined;
-
-    constructor(label: string, description: string, iconId = '', children? : ObjectExplorerItem[]) {
-        super(label, children === undefined ? vscode.TreeItemCollapsibleState.None : vscode.TreeItemCollapsibleState.Collapsed);
-        this.description = description;
-        this.children = children;
-        if (iconId.length > 0) {
-            this.iconPath = new vscode.ThemeIcon(iconId);
-        }
-    }
-}
-
-let currentObjectInfo: ObjectExplorerItem[] = [ new ObjectExplorerItem('', 'Display an expression first...', 'info') ];
+import { updateObjectExplorer, ObjectInformation } from './objectExplorer';
 
 function displayExpression() {
     const editor = vscode.window.activeTextEditor;
@@ -52,7 +33,7 @@ function requestDisplayExpression(editor: vscode.TextEditor, selectedRange: vsco
             if (allCommands.includes('display_expression')) {
                 vscode.commands.executeCommand('display_expression', pathToFileURL(editor.document.uri.fsPath), selectedText).then((result) => {
                     if (result) {
-                        const info = result as DisplayExpressionInfo;
+                        const info = result as ObjectInformation;
                         const text = info.displayString;
                         const textLines = text.split(/\r\n|\r|\n/);
                         editor.insertSnippet(new vscode.SnippetString(text), selectedRange.end);
@@ -78,85 +59,8 @@ function requestDisplayExpression(editor: vscode.TextEditor, selectedRange: vsco
     });
 }
 
-let objectExplorerProvider: ObjectExplorerTreeDataProvider|undefined;
-
-function updateObjectExplorer(info: DisplayExpressionInfo) {
-    currentObjectInfo = [
-        new ObjectExplorerItem(info.expression.split('\n').join(' '), 'expression', 'code'),
-        new ObjectExplorerItem(info.displayString, 'displayString', 'symbol-string')
-    ];
-    if (info.metaQualifiedName !== undefined) {
-        currentObjectInfo.push(new ObjectExplorerItem(info.metaQualifiedName, 'metaQualifiedName', 'dash'));
-    }
-    if (info.metaSimpleName !== undefined) {
-        currentObjectInfo.push(new ObjectExplorerItem(info.metaSimpleName, 'metaSimpleName', 'dash'));
-    }
-
-    if (info.interopProperties.length > 0) {
-        let interopProperties: ObjectExplorerItem[] = [];
-        for (let index = 0; index < info.interopProperties.length; index++) {
-            interopProperties.push(new ObjectExplorerItem(info.interopProperties[index], ''));
-        }
-        currentObjectInfo.push(new ObjectExplorerItem('<Interop Properties>', '', 'symbol-property', interopProperties));
-    }
-
-    if (info.memberNames !== undefined && info.memberNames.length > 0 && info.memberDisplayStrings !== undefined) {
-        let members: ObjectExplorerItem[] = [];
-        for (let index = 0; index < info.memberNames.length; index++) {
-            const memberName = info.memberNames[index];
-            const displayString = info.memberDisplayStrings[index];
-            if (memberName !== undefined && displayString !== undefined) {
-                members.push(new ObjectExplorerItem(memberName, displayString));
-            }
-        }
-        members.sort((a, b) => a.label! > b.label! ? 1 : -1);
-        currentObjectInfo.push(new ObjectExplorerItem('<Interop Members>', '', 'package', members));
-    }
-    if (info.elements !== undefined) {
-        let elements: ObjectExplorerItem[] = [];
-        for (let index = 0; index < info.elements.length; index++) {
-            const element = info.elements[index];
-            if (element !== undefined) {
-                elements.push(new ObjectExplorerItem(element, `#${index}`));
-            }
-        }
-        currentObjectInfo.push(new ObjectExplorerItem('<Interop Elements>', '', 'list-ordered', elements));
-    }
-    refreshObjectExplorer();
-}
-
-function refreshObjectExplorer() {
-    if (objectExplorerProvider === undefined) {
-        objectExplorerProvider = new ObjectExplorerTreeDataProvider();
-        vscode.window.registerTreeDataProvider('displayExpressionInfo', objectExplorerProvider);
-    }
-    objectExplorerProvider.refresh();
-}
-
 export function initializeDisplayExpression(context: vscode.ExtensionContext): void {
     context.subscriptions.push(vscode.commands.registerCommand('vscode-live-programming.displayExpression', () => {
 		displayExpression();
     }));
-    refreshObjectExplorer();
-}
-
-class ObjectExplorerTreeDataProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
-    getTreeItem(element: ObjectExplorerItem): ObjectExplorerItem|Thenable<ObjectExplorerItem> {
-        return element;
-    }
-
-    getChildren(element?: ObjectExplorerItem|undefined): vscode.ProviderResult<ObjectExplorerItem[]> {
-        if (element)  {
-            return element.children;
-        } else {
-            return currentObjectInfo;
-        }
-    }
-
-    private _onDidChangeTreeData: vscode.EventEmitter<ObjectExplorerItem | undefined> = new vscode.EventEmitter<ObjectExplorerItem | undefined>();
-    readonly onDidChangeTreeData: vscode.Event<ObjectExplorerItem | undefined> = this._onDidChangeTreeData.event;
-
-    refresh(): void {
-        this._onDidChangeTreeData.fire(undefined);
-    }
 }

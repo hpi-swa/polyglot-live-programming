@@ -16,7 +16,7 @@
 		"url": "https://github.com/hpi-swa-lab/vscode-live-programming/issues"
 	},
 	"engines": {
-		"vscode": "^1.49.0"
+		"vscode": "^1.50.0"
 	},
 	"categories": [
 		"Programming Languages",
@@ -84,8 +84,8 @@
 		"views": {
 			"explorer": [
 				{
-					"id": "displayExpressionInfo",
-					"name": "Display Expression Info"
+					"id": "objectExplorer",
+					"name": "Object Explorer"
 				}
 			]
 		}
@@ -98,8 +98,13 @@
 		"pretest": "npm run compile && npm run lint",
 		"test": "node ./out/test/runTest.js"
 	},
+	"dependencies": {
+		"@types/markdown-table": "^2.0.0",
+		"markdown-table": "^2.0.0",
+		"vsce": "^1.81.1"
+	},
 	"devDependencies": {
-		"@types/vscode": "^1.49.0",
+		"@types/vscode": "^1.50.0",
 		"@types/glob": "^7.1.3",
 		"@types/mocha": "^8.0.0",
 		"@types/node": "^12.11.7",
