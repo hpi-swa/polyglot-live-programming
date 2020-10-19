@@ -1,8 +1,27 @@
+# Node.js
 node_modules/
 bower_components/
 *.log
 
+# VS Code
 build/
 dist/
 out/
 *.vsix
+
+# Python
+*.pyc
+
+# mx
+mx.live-programming/.pydevproject
+mx.live-programming/eclipse-launches
+mx.live-programming/env
+mxbuild/
+*.dist
+
+# Eclipse
+.classpath
+.project
+.settings
+.factorypath
+workingsets.xml

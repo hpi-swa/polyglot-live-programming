@@ -16,6 +16,8 @@
 		"esModuleInterop": true
 	},
 	"exclude": [
+		"mx.live-programming",
+		"mxbuild",
 		"node_modules",
 		".vscode-test"
 	]
