@@ -303,13 +303,13 @@ function toggleBabylonianAnalysis() {
  */
 
 function createProbeInspectionUrl(fileUri: string, lineIndex: number, exampleName: string, observedValueIndex: number) {
-    return `vscode://hpi-swa.vscode-live-programming/show-probe-details?fileUri=${fileUri}&lineIndex=${lineIndex}&exampleName=${exampleName}&observedValueIndex=${observedValueIndex}`;
+    return `vscode://hpi-swa.vscode-live-programming/show-probe-details?fileUri=${encodeURIComponent(fileUri)}&lineIndex=${lineIndex}&exampleName=${encodeURIComponent(exampleName)}&observedValueIndex=${observedValueIndex}`;
 }
 
 function showProbeDetails(query: URLSearchParams) {
-	const fileUri = query.get('fileUri');
+	const fileUri = decodeURIComponent(query.get('fileUri') || '');
 	const lineIndex = parseInt(query.get('lineIndex') || '');
-	const exampleName = query.get('exampleName');
+	const exampleName = decodeURIComponent(query.get('exampleName') || '');
 	const observedValueIndex = parseInt(query.get('observedValueIndex') || '');
 	if (isNaN(lineIndex) || isNaN(observedValueIndex)) {
 		return;
