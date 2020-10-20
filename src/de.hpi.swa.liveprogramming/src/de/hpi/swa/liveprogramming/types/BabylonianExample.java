@@ -9,6 +9,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -29,7 +30,6 @@ import de.hpi.swa.liveprogramming.types.BabylonianAnalysisResult.BabylonianAnaly
 import de.hpi.swa.liveprogramming.types.BabylonianAnalysisResult.ProbeType;
 
 public class BabylonianExample {
-    private static final String BABYLONIAN_SOURCE_NAME = "<babylonian request>";
     public static final String EXAMPLE_FILTER_ATTRIBUTE = ":example";
     private static final String EXAMPLE_NAME_ATTRIBUTE = ":name";
     private static final int EMOTICONS_START = 0x1F32D;
@@ -37,81 +37,57 @@ public class BabylonianExample {
 
     private static final InteropLibrary LIB = InteropLibrary.getFactory().getUncached();
 
-    private final int lineNumber;
+    private final BabylonianAnalysisLineResult lineResult;
     private final String name;
-    private final URI targetURI;
-    private final Source source;
+    private final String targetIdentifier;
+    private final String[] targetArgumentExpressions;
+    private final Source targeSource;
 
-    public BabylonianExample(String line, int lineIndex, Source originalSource, String language, FunctionDefinition functionDefinition, LinkedHashMap<String, String> attributes) {
-        this.lineNumber = lineIndex;
+    public BabylonianExample(String line, BabylonianAnalysisLineResult lineResult, Source source, FunctionDefinition functionDefinition, LinkedHashMap<String, String> attributes) {
+        this.lineResult = lineResult;
         name = attributes.getOrDefault(EXAMPLE_NAME_ATTRIBUTE, fallbackName(line));
-        targetURI = originalSource.getURI();
-        source = Source.newBuilder(language, getInstrumentedSourceCode(originalSource.getCharacters().toString(), functionDefinition, attributes), BABYLONIAN_SOURCE_NAME).build();
+        targeSource = source;
+        targetIdentifier = functionDefinition.getIdentifier();
+        LinkedHashSet<String> parameters = functionDefinition.getParameters();
+        targetArgumentExpressions = new String[parameters.size()];
+        int i = 0;
+        for (String parameterName : parameters) {
+            targetArgumentExpressions[i++] = attributes.get(parameterName);
+        }
     }
 
     private static String fallbackName(String line) {
         return line.substring(line.indexOf(BabylonianAnalysisCommand.EXAMPLE_PREFIX), line.lastIndexOf('>') + 1);
     }
 
-    private static String getInstrumentedSourceCode(String documentCode, FunctionDefinition functionDefinition, LinkedHashMap<String, String> attributes) {
-        StringBuilder sb = new StringBuilder(documentCode).append('\n');
-        appendInvocationCode(sb, functionDefinition, attributes);
-        return sb.toString();
-    }
-
-    private static void appendInvocationCode(StringBuilder sb, FunctionDefinition functionDefinition, LinkedHashMap<String, String> attributes) {
-        sb.append(functionDefinition.getIdentifier()).append('(');
-        if (!attributes.isEmpty()) {
-            for (String parameterName : functionDefinition.getParameters()) {
-                sb.append(attributes.get(parameterName));
-                sb.append(",");
-            }
-            sb.deleteCharAt(sb.length() - 1);
-        }
-        sb.append(')');
+    public BabylonianAnalysisLineResult getLineResult() {
+        return lineResult;
     }
 
     public String getName() {
         return name;
     }
 
-    public Source getSource() {
-        return source;
+    public Source getTargetSource() {
+        return targeSource;
     }
 
-    public URI getTargetURI() {
-        return targetURI;
+    public String getTargetIdentifier() {
+        return targetIdentifier;
+    }
+
+    public String[] getTargetArgumentExpressions() {
+        return targetArgumentExpressions;
     }
 
     public String getEmoji() {
         return new String(Character.toChars(EMOTICONS_START + name.hashCode() % (EMOTICONS_END - EMOTICONS_START)));
     }
 
-    public ProbeMap deriveProbeMap(BabylonianAnalysisResult result, ProbeMap probeMap) {
-        ProbeMap probeMapCopy = probeMap.copy();
-        TriggerlineToProbesMap triggerLineToProbesMap = probeMapCopy.remove(targetURI);
-        if (triggerLineToProbesMap == null) {
-            throw new AssertionError("Unable to find TriggerlineToProbesMap", null);
-        }
-        TriggerlineToProbesMap triggerLineToProbesMapCopy = triggerLineToProbesMap.copy();
-        // Invocation code is in last line
-        triggerLineToProbesMapCopy.addProbe(source.getLineCount(), new ExampleProbe(result.getOrCreateFile(targetURI).getOrCreateLineResult(lineNumber)));
-        probeMapCopy.put(targetURI, triggerLineToProbesMapCopy);
-        return probeMapCopy;
-    }
-
     public static class TriggerlineToProbesMap extends HashMap<Integer, ArrayList<AbstractProbe>> {
         private static final long serialVersionUID = 1L;
 
         public TriggerlineToProbesMap() {
-        }
-
-        private TriggerlineToProbesMap(TriggerlineToProbesMap original) {
-            super(original);
-        }
-
-        private TriggerlineToProbesMap copy() {
-            return new TriggerlineToProbesMap(this);
         }
 
         public void addProbe(int triggerLine, AbstractProbe probe) {
@@ -125,22 +101,14 @@ public class BabylonianExample {
         public ProbeMap() {
         }
 
-        private ProbeMap(ProbeMap original) {
-            super(original);
-        }
-
-        private ProbeMap copy() {
-            return new ProbeMap(this);
-        }
-
         public SourceSectionFilter[] getSourceSectionFilters(BabylonianExample example) {
             SourceSectionFilter[] filters = new SourceSectionFilter[size()];
             int filterIndex = 0;
             for (Map.Entry<URI, TriggerlineToProbesMap> entry : entrySet()) {
                 Builder builder = SourceSectionFilter.newBuilder().tagIs(StandardTags.StatementTag.class);
                 URI uri = entry.getKey();
-                if (uri.equals(example.targetURI)) {
-                    builder.sourceIs(example.source);
+                if (uri.equals(example.getTargetSource().getURI())) {
+                    builder.sourceIs(example.getTargetSource());
                 } else {
                     // Check URI rather than source identity as source may change
                     builder.sourceIs(s -> s.getURI().equals(entry.getKey()));

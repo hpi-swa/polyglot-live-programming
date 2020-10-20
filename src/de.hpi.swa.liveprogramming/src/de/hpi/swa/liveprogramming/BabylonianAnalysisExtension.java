@@ -34,7 +34,6 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
-import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.EventBinding;
@@ -44,19 +43,27 @@ import com.oracle.truffle.api.instrumentation.ExecutionEventNodeFactory;
 import com.oracle.truffle.api.instrumentation.SourceSectionFilter;
 import com.oracle.truffle.api.instrumentation.TruffleInstrument;
 import com.oracle.truffle.api.instrumentation.TruffleInstrument.Registration;
+import com.oracle.truffle.api.interop.ArityException;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.UnknownIdentifierException;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.ExecutableNode;
+import com.oracle.truffle.api.nodes.LanguageInfo;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
 import de.hpi.swa.liveprogramming.types.BabylonianAnalysisResult;
-import de.hpi.swa.liveprogramming.types.BabylonianExample;
 import de.hpi.swa.liveprogramming.types.BabylonianAnalysisResult.BabylonianAnalysisFileResult;
+import de.hpi.swa.liveprogramming.types.BabylonianAnalysisResult.ProbeType;
+import de.hpi.swa.liveprogramming.types.BabylonianExample;
 import de.hpi.swa.liveprogramming.types.BabylonianExample.AbstractProbe;
 import de.hpi.swa.liveprogramming.types.BabylonianExample.AssertionProbe;
 import de.hpi.swa.liveprogramming.types.BabylonianExample.ExpressionProbe;
 import de.hpi.swa.liveprogramming.types.BabylonianExample.ProbeMap;
 import de.hpi.swa.liveprogramming.types.BabylonianExample.StatementProbe;
 import de.hpi.swa.liveprogramming.types.BabylonianExample.TriggerlineToProbesMap;
+import de.hpi.swa.liveprogramming.types.ObjectInformation;
 
 @Registration(id = BabylonianAnalysisExtension.ID, name = BabylonianAnalysisExtension.NAME, version = BabylonianAnalysisExtension.VERSION, services = LSPExtension.class)
 public class BabylonianAnalysisExtension extends TruffleInstrument implements LSPExtension {
@@ -77,6 +84,7 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
         private static final Pattern EXTRACT_IDENTIFIER_AND_PARAMETERS = Pattern.compile("([a-zA-Z0-9]*)\\(([a-zA-Z0-9\\-_\\, ]*)");
         private static final DocumentBuilder XML_PARSER;
         private static final String ASYNC_WORKER_NAME = "LS Babylonian Async Updater";
+        private static final InteropLibrary INTEROP = InteropLibrary.getUncached();
 
         private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(0, r -> new Thread(r, ASYNC_WORKER_NAME));
 
@@ -107,13 +115,19 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
                 Source source = server.getSource(uri);
                 if (source != null && source.hasCharacters()) {
                     scanDocument(result.getOrCreateFile(uri), probeMap.computeIfAbsent(uri, u -> new TriggerlineToProbesMap()), examples, source);
+                    try {
+                        envInternal.parse(source).call();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        return false;
+                    }
                 }
             }
 
             ScheduledFuture<?> future = sendDecorationsPeriodically(server, result);
             try {
                 for (BabylonianExample example : examples) {
-                    runExampleInstrumented(envInternal, result, probeMap, example);
+                    runExampleInstrumented(envInternal, probeMap, example);
                 }
             } finally {
                 future.cancel(true);
@@ -144,7 +158,7 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
                         break; // End of source reached
                     }
                     if (attributes.keySet().containsAll(functionDefinition.parameters)) {
-                        examples.add(new BabylonianExample(line, lineNumber, source, source.getLanguage(), functionDefinition, attributes));
+                        examples.add(new BabylonianExample(line, fileResult.getOrCreateLineResult(lineNumber), source, functionDefinition, attributes));
                     }
                 } else {
                     boolean containsProbe = line.contains(PROBE_PREFIX);
@@ -278,35 +292,63 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
             }, 250, 500, TimeUnit.MILLISECONDS);
         }
 
-        private static boolean runExampleInstrumented(Env env, BabylonianAnalysisResult result, ProbeMap probeMap, BabylonianExample example) {
-            Source source = example.getSource();
-            CallTarget callTarget;
+        private static boolean runExampleInstrumented(Env env, ProbeMap probeMap, BabylonianExample example) {
+            String languageId = example.getTargetSource().getLanguage();
+            LanguageInfo languageInfo = env.getLanguages().get(languageId);
+            Object scope = env.getScope(languageInfo);
+            Object targetObject;
             try {
-                callTarget = env.parse(source);
-            } catch (IOException e) {
+                targetObject = INTEROP.readMember(scope, example.getTargetIdentifier());
+            } catch (UnsupportedMessageException | UnknownIdentifierException e) {
                 e.printStackTrace();
                 return false;
             }
-            ProbeMap probeMapForExample = example.deriveProbeMap(result, probeMap);
-            BabylonianEventNodeFactory babylonianEventNodeFactory = new BabylonianEventNodeFactory(env, probeMapForExample, example);
+            if (!INTEROP.isExecutable(targetObject)) {
+                return false;
+            }
+            final Object[] arguments = getExampleArguments(env, languageId, example.getTargetArgumentExpressions());
+            if (arguments == null) {
+                return false;
+            }
+            BabylonianEventNodeFactory babylonianEventNodeFactory = new BabylonianEventNodeFactory(env, probeMap, example);
             ArrayList<EventBinding<ExecutionEventNodeFactory>> bindings = new ArrayList<>();
-            for (SourceSectionFilter filter : probeMapForExample.getSourceSectionFilters(example)) {
+            for (SourceSectionFilter filter : probeMap.getSourceSectionFilters(example)) {
                 bindings.add(env.getInstrumenter().attachExecutionEventFactory(filter, babylonianEventNodeFactory));
             }
             try {
-                callTarget.call();
+                Object exampleResult = INTEROP.execute(targetObject, arguments);
+                ObjectInformation info = ObjectInformation.create(example.getTargetIdentifier(), exampleResult);
+                example.getLineResult().recordObservedValue(example.getName(), ProbeType.EXAMPLE, info);
                 return true;
+            } catch (ArityException e) {
+                e.printStackTrace();
+            } catch (UnsupportedTypeException e) {
+                e.printStackTrace();
+            } catch (UnsupportedMessageException e) {
+                e.printStackTrace();
             } catch (ThreadDeath /* EvaluationResultException */ e) {
                 e.printStackTrace();
-                return false; /* !e.isError(); */
             } catch (RuntimeException e) {
                 e.printStackTrace();
-                return false;
             } finally {
                 for (EventBinding<ExecutionEventNodeFactory> binding : bindings) {
                     binding.dispose();
                 }
             }
+            return false;
+        }
+
+        private static Object[] getExampleArguments(Env env, String languageId, String[] expressions) {
+            final Object[] arguments = new Object[expressions.length];
+            for (int i = 0; i < arguments.length; i++) {
+                try {
+                    arguments[i] = env.parse(Source.newBuilder(languageId, expressions[i], "<argument expression>").build()).call();
+                } catch (final Throwable e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            }
+            return arguments;
         }
 
         private static final class BabylonianEventNodeFactory implements ExecutionEventNodeFactory {
@@ -351,16 +393,12 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
                             return e.getMessage();
                         }
                     };
-                    // Use original surrogate URI in case source section belongs to example
-                    URI uri = section.getSource() == example.getSource() ? example.getTargetURI() : section.getSource().getURI();
+                    URI uri = section.getSource().getURI();
                     TriggerlineToProbesMap triggerlineToProbesMap = probeMap.get(uri);
-                    // Apply all relevant probes
-                    for (int lineNumber = section.getStartLine(); lineNumber <= section.getEndLine(); lineNumber++) {
-                        ArrayList<AbstractProbe> probes = triggerlineToProbesMap.get(lineNumber);
-                        if (probes != null) {
-                            for (AbstractProbe probe : probes) {
-                                probe.apply(example, section, result, inlineEvalutator);
-                            }
+                    ArrayList<AbstractProbe> probes = triggerlineToProbesMap.get(section.getStartLine());
+                    if (probes != null) {
+                        for (AbstractProbe probe : probes) {
+                            probe.apply(example, section, result, inlineEvalutator);
                         }
                     }
                 }
