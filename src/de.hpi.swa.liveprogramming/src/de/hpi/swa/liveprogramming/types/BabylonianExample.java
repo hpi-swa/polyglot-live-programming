@@ -80,8 +80,9 @@ public class BabylonianExample {
         return targetArgumentExpressions;
     }
 
-    public String getEmoji() {
-        return new String(Character.toChars(EMOTICONS_START + name.hashCode() % (EMOTICONS_END - EMOTICONS_START)));
+    public String getInvocationExpression() {
+        // TODO: Find better way to determine invocation expression (this is not language-agnostic).
+        return String.format("%s(%s)", targetIdentifier, String.join(", ", targetArgumentExpressions));
     }
 
     public static class TriggerlineToProbesMap extends HashMap<Integer, ArrayList<AbstractProbe>> {
@@ -169,8 +170,8 @@ public class BabylonianExample {
         }
     }
 
-    private abstract static class StandardProbe extends AbstractProbe {
-        private StandardProbe(String exampleNameOrNull, BabylonianAnalysisLineResult lineResult) {
+    public static class StatementProbe extends AbstractProbe {
+        public StatementProbe(String exampleNameOrNull, BabylonianAnalysisLineResult lineResult) {
             super(exampleNameOrNull, lineResult);
         }
 
@@ -185,17 +186,11 @@ public class BabylonianExample {
         }
     }
 
-    public static class StatementProbe extends StandardProbe {
-        public StatementProbe(String exampleNameOrNull, BabylonianAnalysisLineResult lineResult) {
-            super(exampleNameOrNull, lineResult);
-        }
-    }
-
-    public static class ExpressionProbe extends StandardProbe {
+    public static class StatementProbeWithExpression extends StatementProbe {
         public static final String PROBE_EXPRESSION_ATTRIBUTE = ":expression";
         private final String expression;
 
-        public ExpressionProbe(String exampleNameOrNull, BabylonianAnalysisLineResult lineResult, String expression) {
+        public StatementProbeWithExpression(String exampleNameOrNull, BabylonianAnalysisLineResult lineResult, String expression) {
             super(exampleNameOrNull, lineResult);
             this.expression = expression;
         }

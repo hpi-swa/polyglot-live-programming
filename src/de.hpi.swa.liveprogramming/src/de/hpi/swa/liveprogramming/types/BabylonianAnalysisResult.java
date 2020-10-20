@@ -15,8 +15,8 @@ import com.oracle.truffle.tools.utils.json.JSONObject;
 public class BabylonianAnalysisResult {
     HashMap<URI, BabylonianAnalysisFileResult> files = new HashMap<>();
 
-    public BabylonianAnalysisFileResult getOrCreateFile(URI uri) {
-        return files.computeIfAbsent(uri, u -> new BabylonianAnalysisFileResult(u));
+    public BabylonianAnalysisFileResult getOrCreateFile(URI uri, String languageId) {
+        return files.computeIfAbsent(uri, u -> new BabylonianAnalysisFileResult(u, languageId));
     }
 
     public JSONObject toJSON() {
@@ -31,16 +31,18 @@ public class BabylonianAnalysisResult {
 
     public static class BabylonianAnalysisFileResult {
         private final URI uri;
+        private final String languageId;
         HashMap<Integer, BabylonianAnalysisLineResult> lines = new HashMap<>();
 
-        public BabylonianAnalysisFileResult(URI uri) {
+        public BabylonianAnalysisFileResult(URI uri, String languageId) {
             this.uri = uri;
-
+            this.languageId = languageId;
         }
 
         private JSONObject toJSON() {
             JSONObject json = new JSONObject();
             json.put("uri", uri.toString());
+            json.put("languageId", languageId);
             JSONArray linesJSON = new JSONArray();
             for (BabylonianAnalysisLineResult line : lines.values()) {
                 linesJSON.put(line.toJSON());

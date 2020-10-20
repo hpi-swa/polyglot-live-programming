@@ -59,7 +59,7 @@ import de.hpi.swa.liveprogramming.types.BabylonianAnalysisResult.ProbeType;
 import de.hpi.swa.liveprogramming.types.BabylonianExample;
 import de.hpi.swa.liveprogramming.types.BabylonianExample.AbstractProbe;
 import de.hpi.swa.liveprogramming.types.BabylonianExample.AssertionProbe;
-import de.hpi.swa.liveprogramming.types.BabylonianExample.ExpressionProbe;
+import de.hpi.swa.liveprogramming.types.BabylonianExample.StatementProbeWithExpression;
 import de.hpi.swa.liveprogramming.types.BabylonianExample.ProbeMap;
 import de.hpi.swa.liveprogramming.types.BabylonianExample.StatementProbe;
 import de.hpi.swa.liveprogramming.types.BabylonianExample.TriggerlineToProbesMap;
@@ -81,7 +81,7 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
         public static final String PROBE_PREFIX = "<Probe ";
         public static final String ASSERTION_PREFIX = "<Assertion ";
         public static final String BABYLONIAN_ANALYSIS_RESULT_METHOD = "textDocument/babylonianAnalysisResult";
-        private static final Pattern EXTRACT_IDENTIFIER_AND_PARAMETERS = Pattern.compile("([a-zA-Z0-9]*)\\(([a-zA-Z0-9\\-_\\, ]*)");
+        private static final Pattern EXTRACT_IDENTIFIER_AND_PARAMETERS = Pattern.compile("([a-zA-Z0-9]*)\\(([a-zA-Z0-9\\-_, ]*)\\)");
         private static final DocumentBuilder XML_PARSER;
         private static final String ASYNC_WORKER_NAME = "LS Babylonian Async Updater";
         private static final InteropLibrary INTEROP = InteropLibrary.getUncached();
@@ -114,7 +114,7 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
             for (URI uri : openFileURIs) {
                 Source source = server.getSource(uri);
                 if (source != null && source.hasCharacters()) {
-                    scanDocument(result.getOrCreateFile(uri), probeMap.computeIfAbsent(uri, u -> new TriggerlineToProbesMap()), examples, source);
+                    scanDocument(result.getOrCreateFile(uri, source.getLanguage()), probeMap.computeIfAbsent(uri, u -> new TriggerlineToProbesMap()), examples, source);
                     try {
                         envInternal.parse(source).call();
                     } catch (IOException e) {
@@ -171,12 +171,12 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
                         AbstractProbe probe;
                         if (containsProbe) {
                             LinkedHashMap<String, String> attributes = getAttributesOrNull(line, PROBE_PREFIX);
-                            String expression = attributes == null ? null : attributes.get(ExpressionProbe.PROBE_EXPRESSION_ATTRIBUTE);
+                            String expression = attributes == null ? null : attributes.get(StatementProbeWithExpression.PROBE_EXPRESSION_ATTRIBUTE);
                             String exampleNameOrNull = attributes.get(BabylonianExample.EXAMPLE_FILTER_ATTRIBUTE);
                             if (expression == null) {
                                 probe = new StatementProbe(exampleNameOrNull, fileResult.getOrCreateLineResult(triggerLine));
                             } else {
-                                probe = new ExpressionProbe(exampleNameOrNull, fileResult.getOrCreateLineResult(lineNumber), expression);
+                                probe = new StatementProbeWithExpression(exampleNameOrNull, fileResult.getOrCreateLineResult(lineNumber), expression);
                             }
                         } else {
                             LinkedHashMap<String, String> attributes = getAttributesOrNull(line, ASSERTION_PREFIX);
@@ -317,7 +317,7 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
             }
             try {
                 Object exampleResult = INTEROP.execute(targetObject, arguments);
-                ObjectInformation info = ObjectInformation.create(example.getTargetIdentifier(), exampleResult);
+                ObjectInformation info = ObjectInformation.create(example.getInvocationExpression(), exampleResult);
                 example.getLineResult().recordObservedValue(example.getName(), ProbeType.EXAMPLE, info);
                 return true;
             } catch (ArityException e) {

@@ -7,6 +7,7 @@
 'use strict';
 
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { pathToFileURL, URLSearchParams } from 'url';
 import { updateObjectExplorer, ObjectInformation } from './objectExplorer';
 import { UriHandler } from './uriHandler';
@@ -51,6 +52,7 @@ interface BabylonianAnalysisLineResult {
 
 interface BabylonianAnalysisFileResult {
 	readonly uri: string;
+	readonly languageId: string;
     readonly lines: BabylonianAnalysisLineResult[];
 }
 
@@ -124,7 +126,7 @@ function createDecorationText(line: BabylonianAnalysisLineResult): string {
 	return probeTexts.join(' ');
 }
 
-function createHoverMessage(fileUri: string, line: BabylonianAnalysisLineResult): vscode.MarkdownString {
+function createHoverMessage(fileResult: BabylonianAnalysisFileResult, line: BabylonianAnalysisLineResult): vscode.MarkdownString {
 	const maxNumberOfObservedValues = getMaxNumberOfObservedValues(line.probes);
 	let tableData: string[][];
 	if (maxNumberOfObservedValues > 1) {
@@ -133,15 +135,15 @@ function createHoverMessage(fileUri: string, line: BabylonianAnalysisLineResult)
 			tableData.push([`${index}.`]);
 		}
 		for (const probe of line.probes) {
-			pushProbeWithMultipleObservedValues(tableData, fileUri, line.lineIndex, probe, maxNumberOfObservedValues);
+			pushProbeWithMultipleObservedValues(tableData, fileResult, line.lineIndex, probe, maxNumberOfObservedValues);
 		}
 	} else {
 		tableData = [[''], ['displayString'], ['metaName'], [''], ['properties'], ['member(s)'], ['element(s)']];
 		for (const probe of line.probes) {
-			pushProbeWithSingleObservedValue(tableData, fileUri, line.lineIndex, probe);
+			pushProbeWithSingleObservedValue(tableData, fileResult, line.lineIndex, probe);
 		}
 	}
-	return new vscode.MarkdownString(`${table(tableData, {align: 'c'})}`);
+	return new vscode.MarkdownString(`${table(tableData, {align: 'c'})}`, true);
 }
 
 function getMaxNumberOfObservedValues(probes: ProbeResult[]) : number {
@@ -152,9 +154,9 @@ function getMaxNumberOfObservedValues(probes: ProbeResult[]) : number {
 	return maxLength;
 }
 
-function pushProbeWithSingleObservedValue(tableData: string[][], fileUri: string, lineIndex: number, probe: ProbeResult) {
+function pushProbeWithSingleObservedValue(tableData: string[][], fileResult: BabylonianAnalysisFileResult, lineIndex: number, probe: ProbeResult) {
 	const observedValue = probe.observedValues[probe.observedValues.length - 1];
-	tableData[0].push(`[${truncate(prettifyExampleName(probe.exampleName), 20)} ${toEmoticon(probe.exampleName)}](${createProbeInspectionUrl(fileUri, lineIndex, probe.exampleName, 0)})`);
+	tableData[0].push(`[${truncate(prettifyExampleName(probe.exampleName), 20)} ${toEmoticon(probe.exampleName)}](${createProbeInspectionUrl(fileResult, lineIndex, probe.exampleName, 0)})${createDebugSuffix(fileResult, lineIndex, probe)}`);
 	tableData[1].push(observedValue.error ? truncate(observedValue.error, 20) : toRichMarkdown(observedValue.displayString, 20));
 	tableData[2].push(observedValue.metaSimpleName || '-');
 	tableData[3].push('');
@@ -163,14 +165,14 @@ function pushProbeWithSingleObservedValue(tableData: string[][], fileUri: string
 	tableData[6].push(`${(observedValue.elements || []).length}`);
 }
 
-function pushProbeWithMultipleObservedValues(tableData: string[][], fileUri: string, lineIndex: number,  probe: ProbeResult, maxNumberOfObservedValues: number) {
-	tableData[0].push(`${truncate(prettifyExampleName(probe.exampleName), 20)} ${toEmoticon(probe.exampleName)}`);
+function pushProbeWithMultipleObservedValues(tableData: string[][], fileResult: BabylonianAnalysisFileResult, lineIndex: number,  probe: ProbeResult, maxNumberOfObservedValues: number) {
+	tableData[0].push(`${truncate(prettifyExampleName(probe.exampleName), 20)} ${toEmoticon(probe.exampleName)}${createDebugSuffix(fileResult, lineIndex, probe)}`);
 	const numberOfObservedValues = probe.observedValues.length;
 	for (let index = 0; index < maxNumberOfObservedValues; index++) {
 		let result;
 		if (index < numberOfObservedValues) {
 			const value =  probe.observedValues[index];
-			result = `[${truncate(value.error ? value.error : value.displayString, 20)}](${createProbeInspectionUrl(fileUri, lineIndex, probe.exampleName, index)})`;
+			result = `[${truncate(value.error ? value.error : value.displayString, 20)}](${createProbeInspectionUrl(fileResult, lineIndex, probe.exampleName, index)})`;
 		} else {
 			result = '';
 		}
@@ -182,7 +184,7 @@ function createDecorationOptions(editor: vscode.TextEditor, file: BabylonianAnal
 	return {
 		hoverMessage: [
 			'### Babylonian Analysis',
-			createHoverMessage(file.uri, line),
+			createHoverMessage(file, line),
 		],
 		range: editor.document.lineAt(line.lineIndex).range,
 		renderOptions: {
@@ -225,6 +227,7 @@ export function initializeBabylonianAnalysis(context: vscode.ExtensionContext, u
 	context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(event => handleOnDidChangeTextDocument(event.document)));
 	registerSetDecorationHandler();
 	uriHandler.onPath('/show-probe-details', showProbeDetails);
+	uriHandler.onPath('/debug-probe', debugProbe);
 }
 
 function registerSetDecorationHandler() : void {
@@ -302,8 +305,17 @@ function toggleBabylonianAnalysis() {
  * UTILITIES
  */
 
-function createProbeInspectionUrl(fileUri: string, lineIndex: number, exampleName: string, observedValueIndex: number) {
-    return `vscode://hpi-swa.vscode-live-programming/show-probe-details?fileUri=${encodeURIComponent(fileUri)}&lineIndex=${lineIndex}&exampleName=${encodeURIComponent(exampleName)}&observedValueIndex=${observedValueIndex}`;
+function createProbeInspectionUrl(fileResult: BabylonianAnalysisFileResult, lineIndex: number, exampleName: string, observedValueIndex: number) {
+    return `vscode://hpi-swa.vscode-live-programming/show-probe-details?fileUri=${encodeURIComponent(fileResult.uri)}&lineIndex=${lineIndex}&exampleName=${encodeURIComponent(exampleName)}&observedValueIndex=${observedValueIndex}`;
+}
+
+function createProbeDebugUrl(fileResult: BabylonianAnalysisFileResult, lineIndex: number, expression: string) {
+    return `vscode://hpi-swa.vscode-live-programming/debug-probe?fileUri=${encodeURIComponent(fileResult.uri)}&languageId=${fileResult.languageId}&lineIndex=${lineIndex}&expression=${encodeURIComponent(expression)}`;
+}
+
+function createDebugSuffix(fileResult: BabylonianAnalysisFileResult, lineIndex: number, probe: ProbeResult) {
+	const exampleExpression = findExampleExpression(probe.exampleName);
+	return exampleExpression ? ` [[🐞](${createProbeDebugUrl(fileResult, lineIndex, exampleExpression)})]` : '';
 }
 
 function showProbeDetails(query: URLSearchParams) {
@@ -322,6 +334,43 @@ function showProbeDetails(query: URLSearchParams) {
 					for (const probe of line.probes) {
 						if (probe.exampleName === exampleName && observedValueIndex < probe.observedValues.length) {
 							updateObjectExplorer(probe.observedValues[observedValueIndex]);
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+function debugProbe(query: URLSearchParams) {
+	const fileUri = vscode.Uri.parse(decodeURIComponent(query.get('fileUri') || ''));
+	const languageId = query.get('languageId') || '';
+	const lineIndex = parseInt(query.get('lineIndex') || '');
+	const expression = decodeURIComponent(query.get('expression') || '');
+	if (isNaN(lineIndex)) {
+		return;
+	}
+	const position = new vscode.Position(lineIndex, 0);
+	const breakpoint = new vscode.SourceBreakpoint(new vscode.Location(fileUri, position));
+	vscode.debug.addBreakpoints([ breakpoint ]);
+	vscode.debug.startDebugging(undefined, {
+		name: 'Debug Babylonian Probe with GraalVM',
+		type: 'graalvm',
+		request: 'launch',
+		cwd: path.dirname(fileUri.fsPath),
+		runtimeExecutable: 'polyglot',
+		runtimeArgs: ['--jvm', '--file', fileUri.fsPath, '--eval', `${languageId}:${expression}`],
+	});
+}
+
+function findExampleExpression(exampleName: string): string | undefined {
+	if (lastBabylonianResult) {
+		for (const file of lastBabylonianResult.files) {
+			for (const line of file.lines) {
+				for (const probe of line.probes) {
+					if (probe.probeType === ProbeType.example && probe.exampleName === exampleName) {
+						if (probe.observedValues.length === 1) {
+							return probe.observedValues[0].expression;
 						}
 					}
 				}
