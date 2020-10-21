@@ -225,21 +225,19 @@ export function initializeBabylonianAnalysis(context: vscode.ExtensionContext, u
 		toggleBabylonianAnalysis();
 	}));
 	context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(event => handleOnDidChangeTextDocument(event.document)));
-	registerSetDecorationHandler();
+	registerBabylonianAnalysisResultHandler();
 	uriHandler.onPath('/show-probe-details', showProbeDetails);
 	uriHandler.onPath('/debug-probe', debugProbe);
 }
 
-function registerSetDecorationHandler() : void {
-	vscode.commands.getCommands().then((commands: string[]) => {
-		if (commands.includes('extension.graalvm.registerLSPNotificationHandler')) {
-			vscode.commands.executeCommand('extension.graalvm.registerLSPNotificationHandler', BABYLONIAN_ANALYSIS_RESULT_METHOD, handleBabylonianAnalysisResult).then((result) => {
-				if(!result) {
-					console.error('Failed to register handleBabylonianAnalysisResult notification handler.');		
-				}
-			});
-		} else {
-			console.error('Unable to find GraalVM extension.');
+function registerBabylonianAnalysisResultHandler() : void {
+	const graalVMExtension = vscode.extensions.getExtension('oracle-labs-graalvm.graalvm');
+	if (!graalVMExtension) {
+		return console.error('Unable to find GraalVM extension.');
+	}
+	graalVMExtension.exports.onClientNotification(BABYLONIAN_ANALYSIS_RESULT_METHOD, handleBabylonianAnalysisResult).then((result: boolean) => {
+		if (!result) {
+			console.error('Failed to register handleBabylonianAnalysisResult notification handler.');
 		}
 	});
 }

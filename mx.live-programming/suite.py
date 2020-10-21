@@ -44,7 +44,7 @@ suite = {
         "suites": [{
             "name": "truffle",
             "subdir": True,
-            "version": "9ec0dee18a518742e08fe719a34071e9fae87bb1",
+            "version": "ae3d461459b3052631454f73657b2157af0ebd4e",
             "urls": [{
                 "url": "https://github.com/hpi-swa-lab/graal",
                 "kind": "git"
