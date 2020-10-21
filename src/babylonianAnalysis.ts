@@ -357,7 +357,7 @@ function debugProbe(query: URLSearchParams) {
 		request: 'launch',
 		cwd: path.dirname(fileUri.fsPath),
 		runtimeExecutable: 'polyglot',
-		runtimeArgs: ['--jvm', '--file', fileUri.fsPath, '--eval', `${languageId}:${expression}`],
+		runtimeArgs: ['--jvm', '--file', fileUri.fsPath, '--eval', `${languageId}:${expression}`, '--dap.Suspend=false'],
 	});
 }
 
