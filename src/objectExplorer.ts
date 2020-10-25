@@ -21,6 +21,7 @@ export interface ObjectInformation {
 }
 
 let objectExplorerProvider: ObjectExplorerTreeDataProvider;
+let objectExplorerView: vscode.TreeView<ObjectExplorerItem>;
 
 class ObjectExplorerItem extends vscode.TreeItem {
     children: ObjectExplorerItem[]|undefined;
@@ -40,6 +41,7 @@ let currentObjectInfo: ObjectExplorerItem[] = [ new ObjectExplorerItem('', 'Disp
 export function initializeObjectInspector(): void {
     objectExplorerProvider = new ObjectExplorerTreeDataProvider();
     vscode.window.registerTreeDataProvider('objectExplorer', objectExplorerProvider);
+    objectExplorerView = vscode.window.createTreeView('objectExplorer', { treeDataProvider: objectExplorerProvider, showCollapseAll: true });
 }
 
 export function updateObjectExplorer(info: ObjectInformation) {
@@ -86,6 +88,7 @@ export function updateObjectExplorer(info: ObjectInformation) {
         currentObjectInfo.push(new ObjectExplorerItem(`${elements.length}`, 'interopElement(s)', 'list-ordered', elements));
     }
     objectExplorerProvider.refresh();
+    objectExplorerView.reveal(currentObjectInfo[0], { focus: false, select: false });
 }
 
 class ObjectExplorerTreeDataProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
@@ -99,6 +102,10 @@ class ObjectExplorerTreeDataProvider implements vscode.TreeDataProvider<vscode.T
         } else {
             return currentObjectInfo;
         }
+    }
+
+    getParent(element: ObjectExplorerItem): vscode.ProviderResult<ObjectExplorerItem> {
+        return null; /* Always return null, so vscode.TreeView#reveal() can be used. */
     }
 
     private _onDidChangeTreeData: vscode.EventEmitter<ObjectExplorerItem | undefined> = new vscode.EventEmitter<ObjectExplorerItem | undefined>();
