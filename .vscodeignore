@@ -9,6 +9,7 @@ vsc-extension-quickstart.md
 **/.eslintrc.json
 **/*.map
 **/*.ts
-mx.live-programming
-mxbuild
-*.dist
+mx.live-programming/**
+mxbuild/**
+**/*.dist
+examples/**
