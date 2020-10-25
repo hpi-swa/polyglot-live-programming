@@ -42,7 +42,7 @@ suite = {
     # ==========================================================================
     "imports": {
         "suites": [{
-            "name": "truffle",
+            "name": "tools",
             "subdir": True,
             "version": "ae3d461459b3052631454f73657b2157af0ebd4e",
             "urls": [{
@@ -72,7 +72,10 @@ suite = {
         },
         "vscode-extension": {
             "class": "VSCodeExtensionProject",
-        }
+            "dependencies": [
+                "LIVE_PROGRAMMING"
+            ],
+        },
     },
 
     # ==========================================================================
@@ -88,6 +91,15 @@ suite = {
                 "tools:LSP_API",
                 "truffle:TRUFFLE_API",
             ],
+            # This distribution defines a module.
+            "moduleInfo" : {
+                "name" : "de.hpi.swa.liveprogramming",
+                "requiresConcealed" : {
+                    "org.graalvm.truffle" : [
+                        "com.oracle.truffle.api.instrumentation"
+                    ],
+                }
+            },
         },
     },
 }

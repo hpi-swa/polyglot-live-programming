@@ -6,6 +6,7 @@
 
 import mx
 import mx_sdk_vm
+from mx_javamodules import as_java_module, get_java_module_info
 
 import os
 from os.path import join, isfile, exists
@@ -45,7 +46,7 @@ class VSCodeExtensionBuildTask(mx.ArchivableBuildTask):
 
     def newestInput(self):
         inputPaths = []
-        for path in [join(self.subject.dir, m) for m in ['', 'media', 'snippets', 'src']]:
+        for path in [join(self.subject.dir, m) for m in ['', 'lib', 'media', 'snippets', 'src']]:
             if exists(path):
                 inputPaths.extend(join(path, f) for f in os.listdir(path) if isfile(join(path, f)))
         return mx.TimeStampFile.newest(inputPaths)
@@ -60,15 +61,24 @@ class VSCodeExtensionBuildTask(mx.ArchivableBuildTask):
         vsce = join(_suite.dir, 'node_modules', '.bin', 'vsce')
         if not exists(vsce):
             mx.run(['npm', 'install', 'vsce'], nonZeroIsFatal=True, cwd=_suite.dir)
+        modules = [as_java_module(dist, mx.get_jdk()) for dist in _suite.dists if get_java_module_info(dist)]
+        if modules:
+            jarPaths = [m.jarpath for m in modules]
+            libDir = join(self.subject.dir, 'lib')
+            if exists(libDir):
+                mx.rmtree(libDir)
+            os.mkdir(libDir)
+            mx.run(['cp'] + jarPaths + [libDir], nonZeroIsFatal=True, cwd=self.subject.dir)
         mx.run(['npm', 'install'], nonZeroIsFatal=True, cwd=self.subject.dir)
         mx.run([vsce, 'package'], nonZeroIsFatal=True, cwd=self.subject.dir)
 
     def clean(self, forBuild=False):
-        for f in self.subject.getResults():
-            os.remove(f)
-        for path in [join(self.subject.dir, m) for m in ['out', 'node_modules']]:
-            if exists(path):
-                mx.rmtree(path)
+        if not forBuild:
+            for f in self.subject.getResults():
+                os.remove(f)
+            for path in [join(self.subject.dir, m) for m in ['lib', 'node_modules', 'out']]:
+                if exists(path):
+                    mx.rmtree(path)
 
 
 mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmTool(
