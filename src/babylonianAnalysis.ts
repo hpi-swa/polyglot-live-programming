@@ -12,21 +12,19 @@ import { pathToFileURL, URLSearchParams } from 'url';
 import { updateObjectExplorer, ObjectInformation } from './objectExplorer';
 import { UriHandler } from './uriHandler';
 import table from 'markdown-table';
+import { GraalVMExtension } from './@types/graalvm';
 
 let isEnabled = false;
 let isServerSupportAvailable = false;
 
 export const BABYLONIAN_ANALYSIS_RESULT_METHOD: string = 'textDocument/babylonianAnalysisResult';
-const PROBE_DECORATION_TYPE = 'PROBE_DECORATION';
-const ASSERTION_DECORATION_TYPE = 'ASSERTION_DECORATION';
-const EXAMPLE_DECORATION_TYPE = 'EXAMPLE_DECORATION';
 const EXAMPLE_PREFIX = '<Example ';
 const EMOJIS = ['⏰', '🌈', '🌏', '🌽', '🍄', '🍔', '🍕', '🍙', '🍟', '🍪', '🍰', '🎁', '🎂', '🎉', '🏆', '🏠', '🐟', '🐰', '👑', '👻', '💊', '📣', '💰', '📌', '📦', '📷', '🔑', '🔥', '🔫', '🚀', '🚕', '🚁' ];
 const EMOJIS_LENGTH = EMOJIS.length;
 
 const ON_CHANGE_TIMEOUT = 750;
 
-const ACTIVE_DECORATION_TYPES: vscode.TextEditorDecorationType[] = [];
+const ACTIVE_DECORATION_TYPES: { [key: string]: { [key: string]: vscode.TextEditorDecorationType } } = {};
 
 let lastBabylonianRequest: NodeJS.Timeout|null = null;
 let lastBabylonianResult: BabylonianAnalysisResult;
@@ -60,43 +58,45 @@ interface BabylonianAnalysisResult {
     readonly files: BabylonianAnalysisFileResult[];
 }
 
-function createDecorationType(line: BabylonianAnalysisLineResult): vscode.TextEditorDecorationType {
+interface BabylonianAnalysisTerminationResult {
+    readonly timeToRunMillis: number;
+    readonly error?: string;
+}
+
+const FAILURE_RESULT = {timeToRunMillis: 0, error: 'No result'} as BabylonianAnalysisTerminationResult;
+
+function getDecorationType(fileUri: string, line: BabylonianAnalysisLineResult): vscode.TextEditorDecorationType {
+	const lineMap = ACTIVE_DECORATION_TYPES[fileUri] = (ACTIVE_DECORATION_TYPES[fileUri] || {});
+	if (lineMap[line.lineIndex]) {
+		return lineMap[line.lineIndex];
+	}
 	const firstProbeType = line.probes[0].probeType;
+	let color = "white";
+	let backgroundColor = "red";
 	switch (firstProbeType) {
 		case ProbeType.assertion:
-			return vscode.window.createTextEditorDecorationType({
-				after: {
-					color: 'white',
-					backgroundColor: allAssertionsTrue(line.probes) ? '#0d9e00' : '#bd0000',
-					margin: '1rem',
-				},
-			});
+			backgroundColor = allAssertionsTrue(line.probes) ? "#0d9e00" : "#bd0000";
+			break;
 		case ProbeType.example:
-			return vscode.window.createTextEditorDecorationType({
-				after: {
-					color: 'white',
-					backgroundColor: '#636360',
-					margin: '1rem',
-				},
-			});
+			backgroundColor = "#636360";
+			break;
 		case ProbeType.probe:
-			return vscode.window.createTextEditorDecorationType({
-				after: {
-					color: 'white',
-					backgroundColor: '#4e7ec2',
-					margin: '1rem',
-				},
-			});
+			backgroundColor = "#4e7ec2";
+			break;
 		default:
 			console.warn('Unknown decoration type:', firstProbeType);
-			return vscode.window.createTextEditorDecorationType({
-				after: {
-					color: 'white',
-					backgroundColor: 'red',
-					margin: '1rem',
-				},
-			});
 	}
+	return (lineMap[line.lineIndex] = createDecorationType(color, backgroundColor));
+}
+
+function createDecorationType(color: string, backgroundColor: string): vscode.TextEditorDecorationType {
+	return vscode.window.createTextEditorDecorationType({
+		after: {
+			color,
+			backgroundColor,
+			margin: '1rem',
+		},
+	});
 }
 
 function allAssertionsTrue(probes: ProbeResult[]): boolean {
@@ -156,7 +156,7 @@ function getMaxNumberOfObservedValues(probes: ProbeResult[]) : number {
 
 function pushProbeWithSingleObservedValue(tableData: string[][], fileResult: BabylonianAnalysisFileResult, lineIndex: number, probe: ProbeResult) {
 	const observedValue = probe.observedValues[probe.observedValues.length - 1];
-	tableData[0].push(`[${truncate(prettifyExampleName(probe.exampleName), 20)} ${toEmoticon(probe.exampleName)}](${createProbeInspectionUrl(fileResult, lineIndex, probe.exampleName, 0)})${createDebugSuffix(fileResult, lineIndex, probe)}`);
+	tableData[0].push(`[${toEmoticon(probe.exampleName)} ${truncate(prettifyExampleName(probe.exampleName), 20)}](${createProbeInspectionUrl(fileResult, lineIndex, probe.exampleName, 0)})${createDebugSuffix(fileResult, lineIndex, probe)}`);
 	tableData[1].push(observedValue.error ? truncate(observedValue.error, 20) : toRichMarkdown(observedValue.displayString, 20));
 	tableData[2].push(observedValue.metaSimpleName || '-');
 	tableData[3].push('');
@@ -166,7 +166,7 @@ function pushProbeWithSingleObservedValue(tableData: string[][], fileResult: Bab
 }
 
 function pushProbeWithMultipleObservedValues(tableData: string[][], fileResult: BabylonianAnalysisFileResult, lineIndex: number,  probe: ProbeResult, maxNumberOfObservedValues: number) {
-	tableData[0].push(`${truncate(prettifyExampleName(probe.exampleName), 20)} ${toEmoticon(probe.exampleName)}${createDebugSuffix(fileResult, lineIndex, probe)}`);
+	tableData[0].push(`${toEmoticon(probe.exampleName)} ${truncate(prettifyExampleName(probe.exampleName), 20)}${createDebugSuffix(fileResult, lineIndex, probe)}`);
 	const numberOfObservedValues = probe.observedValues.length;
 	for (let index = 0; index < maxNumberOfObservedValues; index++) {
 		let result;
@@ -196,23 +196,24 @@ function createDecorationOptions(editor: vscode.TextEditor, file: BabylonianAnal
 }
 
 function clearDecorations() {
-	while(ACTIVE_DECORATION_TYPES.length > 0) {
-		ACTIVE_DECORATION_TYPES.pop()?.dispose();
-	}
+	Object.keys(ACTIVE_DECORATION_TYPES).map((fileUri) => {
+		const lineMap = ACTIVE_DECORATION_TYPES[fileUri];
+		Object.keys(lineMap).map((lineIndex) => {
+			lineMap[lineIndex].dispose();
+		});
+		delete ACTIVE_DECORATION_TYPES[fileUri];
+	});
 }
 
 function handleBabylonianAnalysisResult(result : BabylonianAnalysisResult) {
 	lastBabylonianResult = result;
-	// Clear decorations to allow new updated ones.
-	clearDecorations();
 	for (const file of result.files) {
 		const editor = vscode.window.visibleTextEditors.filter(editor => editor.document.uri.toString() === file.uri)[0];
 		if (editor) {
 			for (const line of file.lines) {
 				if (line.probes.length > 0) {
-					const decorationType = createDecorationType(line);
+					const decorationType = getDecorationType(file.uri, line);
 					const decorationOptions = createDecorationOptions(editor, file, line);
-					ACTIVE_DECORATION_TYPES.push(decorationType);
 					editor.setDecorations(decorationType, [decorationOptions]);
 				}
 			}
@@ -220,21 +221,17 @@ function handleBabylonianAnalysisResult(result : BabylonianAnalysisResult) {
 	}
 }
 
-export function initializeBabylonianAnalysis(context: vscode.ExtensionContext, uriHandler: UriHandler) {
+export function initializeBabylonianAnalysis(context: vscode.ExtensionContext, graalVMExtension: vscode.Extension<GraalVMExtension>, uriHandler: UriHandler) {
 	context.subscriptions.push(vscode.commands.registerCommand('vscode-live-programming.toggleBabylonianAnalysis', () => {
 		toggleBabylonianAnalysis();
 	}));
 	context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(event => handleOnDidChangeTextDocument(event.document)));
-	registerBabylonianAnalysisResultHandler();
+	registerBabylonianAnalysisResultHandler(graalVMExtension);
 	uriHandler.onPath('/show-probe-details', showProbeDetails);
 	uriHandler.onPath('/debug-probe', debugProbe);
 }
 
-function registerBabylonianAnalysisResultHandler() : void {
-	const graalVMExtension = vscode.extensions.getExtension('oracle-labs-graalvm.graalvm');
-	if (!graalVMExtension) {
-		return console.error('Unable to find GraalVM extension.');
-	}
+function registerBabylonianAnalysisResultHandler(graalVMExtension: vscode.Extension<GraalVMExtension>) : void {
 	graalVMExtension.exports.onClientNotification(BABYLONIAN_ANALYSIS_RESULT_METHOD, handleBabylonianAnalysisResult).then((result: boolean) => {
 		if (!result) {
 			console.error('Failed to register handleBabylonianAnalysisResult notification handler.');
@@ -249,11 +246,13 @@ function requestBabylonianAnalysis(document: vscode.TextDocument): void {
 			let disposable = vscode.window.setStatusBarMessage('Performing Babylonian Analysis...');
 			console.log('Requesting Babylonian Analysis...');
 			console.time('Babylonian Analysis execution');
-			vscode.commands.executeCommand('babylonian_analysis', pathToFileURL(document.uri.fsPath)).then((result) => {
+			vscode.commands.executeCommand('babylonian_analysis', pathToFileURL(document.uri.fsPath)).then((resultObject) => {
+				const result = resultObject as BabylonianAnalysisTerminationResult || FAILURE_RESULT;
 				console.timeEnd('Babylonian Analysis execution');
+				console.log(`Time to run on GraalLS backend: ${result.timeToRunMillis}ms`);
 				disposable.dispose();
-				if (!result) {
-					console.warn('Babylonian Analysis was not successful');
+				if (result.error) {
+					vscode.window.setStatusBarMessage(`BA failed: ${result.error}`, 1000);
 				}
 			});
 		} else {
@@ -313,7 +312,7 @@ function createProbeDebugUrl(fileResult: BabylonianAnalysisFileResult, lineIndex
 
 function createDebugSuffix(fileResult: BabylonianAnalysisFileResult, lineIndex: number, probe: ProbeResult) {
 	const exampleExpression = findExampleExpression(probe.exampleName);
-	return exampleExpression ? ` [[🐞](${createProbeDebugUrl(fileResult, lineIndex, exampleExpression)})]` : '';
+	return exampleExpression ? ` [🐞](${createProbeDebugUrl(fileResult, lineIndex, exampleExpression)})` : '';
 }
 
 function showProbeDetails(query: URLSearchParams) {
@@ -387,8 +386,9 @@ function truncate(value: string, n: number) {
 
 function toRichMarkdown(value: string, n: number): string {
 	const truncated = truncate(value, n);
-	if (value.startsWith('<svg xmlns="http://www.w3.org/2000/svg"')) {
-		return `![${truncated}](data:image/svg+xml;base64,${toBase64(value)})`;
+	const startIndex = Math.max(value.indexOf('<svg xmlns="http://www.w3.org/2000/svg"'), value.indexOf('<svg xmlns=\'http://www.w3.org/2000/svg\''));
+	if (startIndex > 0) {
+		return `![${truncated}](data:image/svg+xml;base64,${toBase64(value.substring(startIndex, value.indexOf('</svg>') + 6))})`;
 	} else {
 		return truncated;
 	}

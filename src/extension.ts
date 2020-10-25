@@ -11,17 +11,22 @@ import { initializeBabylonianAnalysis, getLastBabylonianResult } from './babylon
 import { initializeDisplayExpression } from './displayExpression';
 import { initializeObjectInspector } from './objectExplorer';
 import { UriHandler } from './uriHandler';
+import { GraalVMExtension } from './@types/graalvm';
 
 export function activate(context: vscode.ExtensionContext) {
 	console.log("Activating Live Programming extension...");
+
+	const graalVMExtension = vscode.extensions.getExtension<GraalVMExtension>('oracle-labs-graalvm.graalvm');
+	if (!graalVMExtension) {
+		return console.error('Unable to find GraalVM extension.');
+	}
 
 	const uriHandler = new UriHandler;
 	vscode.window.registerUriHandler(uriHandler);
 
 	initializeObjectInspector();
 	initializeDisplayExpression(context);
-	initializeBabylonianAnalysis(context, uriHandler);
-	
+	initializeBabylonianAnalysis(context, graalVMExtension, uriHandler);
 }
 
 export function deactivate() {}
