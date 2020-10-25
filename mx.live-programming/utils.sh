@@ -19,7 +19,7 @@ from suite import suite;
 vars= ' '.join(['DEP_%s=%s' % (k.upper(), v)
   for k, v in suite['live-programming:dependencyMap'].items()]);
 slug = '/'.join(suite['url'].split('/')[-2:]);
-graal = next(s for s in suite['imports']['suites'] if s['name'] == 'truffle')
+graal = next(s for s in suite['imports']['suites'] if s['name'] == 'tools')
 graal_version = graal['version']
 graal_url = graal['urls'][0]['url']
 print('export %s GITHUB_SLUG=%s GRAAL_VERSION=%s GRAAL_URL=%s' % (vars, slug, graal_version, graal_url))
