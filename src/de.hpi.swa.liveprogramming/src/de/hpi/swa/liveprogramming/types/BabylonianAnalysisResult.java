@@ -29,6 +29,17 @@ public class BabylonianAnalysisResult {
         return json;
     }
 
+    public static class BabylonianAnalysisTerminationResult {
+        public static JSONObject create(long startMillis, String error) {
+            JSONObject json = new JSONObject();
+            json.put("timeToRunMillis", System.currentTimeMillis() - startMillis);
+            if (error != null) {
+                json.put("error", error);
+            }
+            return json;
+        }
+    }
+
     public static class BabylonianAnalysisFileResult {
         private final URI uri;
         private final String languageId;

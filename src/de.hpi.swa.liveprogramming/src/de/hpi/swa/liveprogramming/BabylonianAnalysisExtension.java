@@ -43,11 +43,9 @@ import com.oracle.truffle.api.instrumentation.ExecutionEventNodeFactory;
 import com.oracle.truffle.api.instrumentation.SourceSectionFilter;
 import com.oracle.truffle.api.instrumentation.TruffleInstrument;
 import com.oracle.truffle.api.instrumentation.TruffleInstrument.Registration;
-import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
-import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.ExecutableNode;
 import com.oracle.truffle.api.nodes.LanguageInfo;
 import com.oracle.truffle.api.source.Source;
@@ -55,13 +53,14 @@ import com.oracle.truffle.api.source.SourceSection;
 
 import de.hpi.swa.liveprogramming.types.BabylonianAnalysisResult;
 import de.hpi.swa.liveprogramming.types.BabylonianAnalysisResult.BabylonianAnalysisFileResult;
+import de.hpi.swa.liveprogramming.types.BabylonianAnalysisResult.BabylonianAnalysisTerminationResult;
 import de.hpi.swa.liveprogramming.types.BabylonianAnalysisResult.ProbeType;
 import de.hpi.swa.liveprogramming.types.BabylonianExample;
 import de.hpi.swa.liveprogramming.types.BabylonianExample.AbstractProbe;
 import de.hpi.swa.liveprogramming.types.BabylonianExample.AssertionProbe;
-import de.hpi.swa.liveprogramming.types.BabylonianExample.StatementProbeWithExpression;
 import de.hpi.swa.liveprogramming.types.BabylonianExample.ProbeMap;
 import de.hpi.swa.liveprogramming.types.BabylonianExample.StatementProbe;
+import de.hpi.swa.liveprogramming.types.BabylonianExample.StatementProbeWithExpression;
 import de.hpi.swa.liveprogramming.types.BabylonianExample.TriggerlineToProbesMap;
 import de.hpi.swa.liveprogramming.types.ObjectInformation;
 
@@ -87,6 +86,7 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
         private static final InteropLibrary INTEROP = InteropLibrary.getUncached();
 
         private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(0, r -> new Thread(r, ASYNC_WORKER_NAME));
+        private long startMillis;
 
         static {
             try {
@@ -101,6 +101,7 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
         }
 
         public Object execute(LSPServerAccessor server, Env envInternal, List<Object> arguments) {
+            startMillis = System.currentTimeMillis();
             URI targetURI = URI.create((String) arguments.get(0));
             Set<URI> openFileURIs = server.getOpenFileURI2LangId().keySet();
 
@@ -117,9 +118,8 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
                     scanDocument(result.getOrCreateFile(uri, source.getLanguage()), probeMap.computeIfAbsent(uri, u -> new TriggerlineToProbesMap()), examples, source);
                     try {
                         envInternal.parse(source).call();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        return false;
+                    } catch (Throwable e) {
+                        return BabylonianAnalysisTerminationResult.create(startMillis, e.getMessage());
                     }
                 }
             }
@@ -134,7 +134,7 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
                 // Send all decorations
                 server.sendCustomNotification(BABYLONIAN_ANALYSIS_RESULT_METHOD, result.toJSON());
             }
-            return true;
+            return BabylonianAnalysisTerminationResult.create(startMillis, null);
         }
 
         public int getTimeoutMillis() {
@@ -142,7 +142,7 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
         }
 
         public Object onTimeout(List<Object> arguments) {
-            return false;
+            return BabylonianAnalysisTerminationResult.create(startMillis, "Babylonian analysis timed out.");
         }
 
         private static void scanDocument(BabylonianAnalysisFileResult fileResult, TriggerlineToProbesMap triggerlineToProbeMap, ArrayList<BabylonianExample> examples, Source source) {
@@ -292,7 +292,7 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
             }, 250, 500, TimeUnit.MILLISECONDS);
         }
 
-        private static boolean runExampleInstrumented(Env env, ProbeMap probeMap, BabylonianExample example) {
+        private static void runExampleInstrumented(Env env, ProbeMap probeMap, BabylonianExample example) {
             String languageId = example.getTargetSource().getLanguage();
             LanguageInfo languageInfo = env.getLanguages().get(languageId);
             Object scope = env.getScope(languageInfo);
@@ -301,14 +301,17 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
                 targetObject = INTEROP.readMember(scope, example.getTargetIdentifier());
             } catch (UnsupportedMessageException | UnknownIdentifierException e) {
                 e.printStackTrace();
-                return false;
+                return;
             }
             if (!INTEROP.isExecutable(targetObject)) {
-                return false;
+                return;
             }
-            final Object[] arguments = getExampleArguments(env, languageId, example.getTargetArgumentExpressions());
-            if (arguments == null) {
-                return false;
+            final Object[] arguments;
+            try {
+                arguments = getExampleArguments(env, languageId, example.getTargetArgumentExpressions());
+            } catch (Throwable e) {
+                example.getLineResult().recordObservedValue(example.getName(), ProbeType.EXAMPLE, ObjectInformation.createError("<unknown>", e.getMessage(), e.getMessage()));
+                return;
             }
             BabylonianEventNodeFactory babylonianEventNodeFactory = new BabylonianEventNodeFactory(env, probeMap, example);
             ArrayList<EventBinding<ExecutionEventNodeFactory>> bindings = new ArrayList<>();
@@ -319,34 +322,19 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
                 Object exampleResult = INTEROP.execute(targetObject, arguments);
                 ObjectInformation info = ObjectInformation.create(example.getInvocationExpression(), exampleResult);
                 example.getLineResult().recordObservedValue(example.getName(), ProbeType.EXAMPLE, info);
-                return true;
-            } catch (ArityException e) {
-                e.printStackTrace();
-            } catch (UnsupportedTypeException e) {
-                e.printStackTrace();
-            } catch (UnsupportedMessageException e) {
-                e.printStackTrace();
-            } catch (ThreadDeath /* EvaluationResultException */ e) {
-                e.printStackTrace();
-            } catch (RuntimeException e) {
-                e.printStackTrace();
+            } catch (Throwable e) {
+                example.getLineResult().recordObservedValue(example.getName(), ProbeType.EXAMPLE, ObjectInformation.createError("<unknown>", e.getMessage(), e.getMessage()));
             } finally {
                 for (EventBinding<ExecutionEventNodeFactory> binding : bindings) {
                     binding.dispose();
                 }
             }
-            return false;
         }
 
-        private static Object[] getExampleArguments(Env env, String languageId, String[] expressions) {
+        private static Object[] getExampleArguments(Env env, String languageId, String[] expressions) throws Throwable {
             final Object[] arguments = new Object[expressions.length];
             for (int i = 0; i < arguments.length; i++) {
-                try {
-                    arguments[i] = env.parse(Source.newBuilder(languageId, expressions[i], "<argument expression>").build()).call();
-                } catch (final Throwable e) {
-                    e.printStackTrace();
-                    return null;
-                }
+                arguments[i] = env.parse(Source.newBuilder(languageId, expressions[i], "<argument expression>").build()).call();
             }
             return arguments;
         }

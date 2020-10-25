@@ -32,8 +32,6 @@ import de.hpi.swa.liveprogramming.types.BabylonianAnalysisResult.ProbeType;
 public class BabylonianExample {
     public static final String EXAMPLE_FILTER_ATTRIBUTE = ":example";
     private static final String EXAMPLE_NAME_ATTRIBUTE = ":name";
-    private static final int EMOTICONS_START = 0x1F32D;
-    private static final int EMOTICONS_END = 0x1F37F;
 
     private static final InteropLibrary LIB = InteropLibrary.getFactory().getUncached();
 
