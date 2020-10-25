@@ -90,5 +90,6 @@ mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmTool(
     third_party_license_files=[],
     truffle_jars=['live-programming:LIVE_PROGRAMMING'],
     support_distributions=[],
-    include_by_default=True,
+    include_by_default=False,
+    installable=True,
 ))
