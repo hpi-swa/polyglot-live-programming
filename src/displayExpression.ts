@@ -8,7 +8,8 @@
 
 import * as vscode from 'vscode';
 import { pathToFileURL } from 'url';
-import { updateObjectExplorer, ObjectInformation } from './objectExplorer';
+import { updateObjectExplorer } from './objectExplorer';
+import { ObjectInformation } from './objectExplorerTypes';
 
 function displayExpression() {
     const editor = vscode.window.activeTextEditor;

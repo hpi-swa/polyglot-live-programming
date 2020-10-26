@@ -51,17 +51,15 @@ import com.oracle.truffle.api.nodes.LanguageInfo;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
+import de.hpi.swa.liveprogramming.types.AbstractProbe;
+import de.hpi.swa.liveprogramming.types.AbstractProbe.AssertionProbe;
+import de.hpi.swa.liveprogramming.types.AbstractProbe.ExampleProbe;
+import de.hpi.swa.liveprogramming.types.AbstractProbe.OrphanProbe;
+import de.hpi.swa.liveprogramming.types.AbstractProbe.StatementProbe;
+import de.hpi.swa.liveprogramming.types.AbstractProbe.StatementProbeWithExpression;
 import de.hpi.swa.liveprogramming.types.BabylonianAnalysisResult;
 import de.hpi.swa.liveprogramming.types.BabylonianAnalysisResult.BabylonianAnalysisFileResult;
 import de.hpi.swa.liveprogramming.types.BabylonianAnalysisResult.BabylonianAnalysisTerminationResult;
-import de.hpi.swa.liveprogramming.types.BabylonianAnalysisResult.ProbeType;
-import de.hpi.swa.liveprogramming.types.BabylonianExample;
-import de.hpi.swa.liveprogramming.types.BabylonianExample.AbstractProbe;
-import de.hpi.swa.liveprogramming.types.BabylonianExample.AssertionProbe;
-import de.hpi.swa.liveprogramming.types.BabylonianExample.ProbeMap;
-import de.hpi.swa.liveprogramming.types.BabylonianExample.StatementProbe;
-import de.hpi.swa.liveprogramming.types.BabylonianExample.StatementProbeWithExpression;
-import de.hpi.swa.liveprogramming.types.BabylonianExample.TriggerlineToProbesMap;
 import de.hpi.swa.liveprogramming.types.ObjectInformation;
 
 @Registration(id = BabylonianAnalysisExtension.ID, name = BabylonianAnalysisExtension.NAME, version = BabylonianAnalysisExtension.VERSION, services = LSPExtension.class)
@@ -77,9 +75,9 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
     public static class BabylonianAnalysisCommand implements LSPCommand {
 
         public static final String EXAMPLE_PREFIX = "<Example ";
-        public static final String PROBE_PREFIX = "<Probe ";
-        public static final String ASSERTION_PREFIX = "<Assertion ";
-        public static final String BABYLONIAN_ANALYSIS_RESULT_METHOD = "textDocument/babylonianAnalysisResult";
+        private static final String PROBE_PREFIX = "<Probe ";
+        private static final String ASSERTION_PREFIX = "<Assertion ";
+        private static final String BABYLONIAN_ANALYSIS_RESULT_METHOD = "textDocument/babylonianAnalysisResult";
         private static final Pattern EXTRACT_IDENTIFIER_AND_PARAMETERS = Pattern.compile("([a-zA-Z0-9]*)\\(([a-zA-Z0-9\\-_, ]*)\\)");
         private static final DocumentBuilder XML_PARSER;
         private static final String ASYNC_WORKER_NAME = "LS Babylonian Async Updater";
@@ -105,17 +103,12 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
             URI targetURI = URI.create((String) arguments.get(0));
             Set<URI> openFileURIs = server.getOpenFileURI2LangId().keySet();
 
-            assert openFileURIs.contains(targetURI) : "targetURI not in openFileURIs";
-
             BabylonianAnalysisResult result = new BabylonianAnalysisResult();
-
-            ProbeMap probeMap = new ProbeMap();
-            ArrayList<BabylonianExample> examples = new ArrayList<>();
 
             for (URI uri : openFileURIs) {
                 Source source = server.getSource(uri);
                 if (source != null && source.hasCharacters()) {
-                    scanDocument(result.getOrCreateFile(uri, source.getLanguage()), probeMap.computeIfAbsent(uri, u -> new TriggerlineToProbesMap()), examples, source);
+                    scanDocument(result.getOrCreateFile(uri, source.getLanguage()), source);
                     try {
                         envInternal.parse(source).call();
                     } catch (Throwable e) {
@@ -126,8 +119,10 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
 
             ScheduledFuture<?> future = sendDecorationsPeriodically(server, result);
             try {
-                for (BabylonianExample example : examples) {
-                    runExampleInstrumented(envInternal, probeMap, example);
+                for (BabylonianAnalysisFileResult file : result.getFileResults()) {
+                    for (ExampleProbe example : file.getExamples()) {
+                        runExampleInstrumented(envInternal, result, example);
+                    }
                 }
             } finally {
                 future.cancel(true);
@@ -145,7 +140,7 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
             return BabylonianAnalysisTerminationResult.create(startMillis, "Babylonian analysis timed out.");
         }
 
-        private static void scanDocument(BabylonianAnalysisFileResult fileResult, TriggerlineToProbesMap triggerlineToProbeMap, ArrayList<BabylonianExample> examples, Source source) {
+        private static void scanDocument(BabylonianAnalysisFileResult fileResult, Source source) {
             for (int lineNumber = 1; lineNumber <= source.getLineCount(); lineNumber++) {
                 String line = source.getCharacters(lineNumber).toString();
                 if (line.contains(EXAMPLE_PREFIX)) {
@@ -158,7 +153,7 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
                         break; // End of source reached
                     }
                     if (attributes.keySet().containsAll(functionDefinition.parameters)) {
-                        examples.add(new BabylonianExample(line, fileResult.getOrCreateLineResult(lineNumber), source, functionDefinition, attributes));
+                        fileResult.addExample(new ExampleProbe(line, lineNumber, source.getLanguage(), functionDefinition, attributes));
                     }
                 } else {
                     boolean containsProbe = line.contains(PROBE_PREFIX);
@@ -172,23 +167,21 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
                         if (containsProbe) {
                             LinkedHashMap<String, String> attributes = getAttributesOrNull(line, PROBE_PREFIX);
                             String expression = attributes == null ? null : attributes.get(StatementProbeWithExpression.PROBE_EXPRESSION_ATTRIBUTE);
-                            String exampleNameOrNull = attributes.get(BabylonianExample.EXAMPLE_FILTER_ATTRIBUTE);
+                            String exampleNameOrNull = attributes.get(ExampleProbe.EXAMPLE_FILTER_ATTRIBUTE);
                             if (expression == null) {
-                                probe = new StatementProbe(exampleNameOrNull, fileResult.getOrCreateLineResult(triggerLine));
+                                probe = new StatementProbe(exampleNameOrNull, lineNumber);
                             } else {
-                                probe = new StatementProbeWithExpression(exampleNameOrNull, fileResult.getOrCreateLineResult(lineNumber), expression);
+                                probe = new StatementProbeWithExpression(exampleNameOrNull, lineNumber, expression);
                             }
                         } else {
                             LinkedHashMap<String, String> attributes = getAttributesOrNull(line, ASSERTION_PREFIX);
                             if (attributes == null) {
                                 break; // Skip line, assertions must have attributes
                             }
-                            int targetLineNumber;
                             String probeExpression;
                             boolean isExpectedValue;
                             String expected = attributes.get(AssertionProbe.ASSERTION_EXPECTED_ATTRIBUTE);
                             if (expected != null) {
-                                targetLineNumber = triggerLine;
                                 probeExpression = expected;
                                 isExpectedValue = true;
                             } else {
@@ -196,15 +189,13 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
                                 if (expression == null) {
                                     break; // Skip line, insufficient attributes for assertion
                                 }
-                                targetLineNumber = lineNumber;
                                 probeExpression = expression;
                                 isExpectedValue = false;
                             }
-                            String exampleNameOrNull = attributes.get(BabylonianExample.EXAMPLE_FILTER_ATTRIBUTE);
-                            probe = new AssertionProbe(exampleNameOrNull, fileResult.getOrCreateLineResult(targetLineNumber), probeExpression, isExpectedValue);
-
+                            String exampleNameOrNull = attributes.get(ExampleProbe.EXAMPLE_FILTER_ATTRIBUTE);
+                            probe = new AssertionProbe(exampleNameOrNull, lineNumber, probeExpression, isExpectedValue);
                         }
-                        triggerlineToProbeMap.addProbe(triggerLine, probe);
+                        fileResult.addProbe(triggerLine, probe);
                     }
                 }
             }
@@ -218,7 +209,14 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
                 }
                 Matcher m = EXTRACT_IDENTIFIER_AND_PARAMETERS.matcher(line);
                 if (m.find()) {
-                    return new FunctionDefinition(m.group(1), m.group(2).replaceAll(" ", "").split(","));
+                    // FIXME: workaround for R functions
+                    String identifier;
+                    if (line.contains(" <- function")) {
+                        identifier = line.substring(0, line.indexOf(" <- function"));
+                    } else {
+                        identifier = m.group(1);
+                    }
+                    return new FunctionDefinition(identifier, m.group(2).replaceAll(" ", "").split(","));
                 } else {
                     printError("Unable to find function definition in:\n" + line);
                     return null;
@@ -240,7 +238,7 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
             return -1;
         }
 
-        public static LinkedHashMap<String, String> getAttributesOrNull(String line, String tagPrefix) {
+        private static LinkedHashMap<String, String> getAttributesOrNull(String line, String tagPrefix) {
             int startIndex = line.indexOf(tagPrefix);
             int endIndex = line.lastIndexOf('>') + 1;
             assert startIndex > 0;
@@ -292,8 +290,8 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
             }, 250, 500, TimeUnit.MILLISECONDS);
         }
 
-        private static void runExampleInstrumented(Env env, ProbeMap probeMap, BabylonianExample example) {
-            String languageId = example.getTargetSource().getLanguage();
+        private static void runExampleInstrumented(Env env, BabylonianAnalysisResult result, ExampleProbe example) {
+            String languageId = example.getLanguageId();
             LanguageInfo languageInfo = env.getLanguages().get(languageId);
             Object scope = env.getScope(languageInfo);
             Object targetObject;
@@ -310,20 +308,20 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
             try {
                 arguments = getExampleArguments(env, languageId, example.getTargetArgumentExpressions());
             } catch (Throwable e) {
-                example.getLineResult().recordObservedValue(example.getName(), ProbeType.EXAMPLE, ObjectInformation.createError("<unknown>", e.getMessage(), e.getMessage()));
+                example.addObservedValue(ObjectInformation.createError("<unknown>", e.getMessage(), e.getMessage()));
                 return;
             }
-            BabylonianEventNodeFactory babylonianEventNodeFactory = new BabylonianEventNodeFactory(env, probeMap, example);
+            BabylonianEventNodeFactory babylonianEventNodeFactory = new BabylonianEventNodeFactory(env, result, example);
             ArrayList<EventBinding<ExecutionEventNodeFactory>> bindings = new ArrayList<>();
-            for (SourceSectionFilter filter : probeMap.getSourceSectionFilters(example)) {
+            for (SourceSectionFilter filter : result.getSourceSectionFilters()) {
                 bindings.add(env.getInstrumenter().attachExecutionEventFactory(filter, babylonianEventNodeFactory));
             }
             try {
                 Object exampleResult = INTEROP.execute(targetObject, arguments);
                 ObjectInformation info = ObjectInformation.create(example.getInvocationExpression(), exampleResult);
-                example.getLineResult().recordObservedValue(example.getName(), ProbeType.EXAMPLE, info);
+                example.addObservedValue(info);
             } catch (Throwable e) {
-                example.getLineResult().recordObservedValue(example.getName(), ProbeType.EXAMPLE, ObjectInformation.createError("<unknown>", e.getMessage(), e.getMessage()));
+                example.addObservedValue(ObjectInformation.createError("<unknown>", e.getMessage(), e.getMessage()));
             } finally {
                 for (EventBinding<ExecutionEventNodeFactory> binding : bindings) {
                     binding.dispose();
@@ -341,17 +339,17 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
 
         private static final class BabylonianEventNodeFactory implements ExecutionEventNodeFactory {
             private final Env env;
-            private final ProbeMap probeMap;
-            private final BabylonianExample example;
+            private final BabylonianAnalysisResult result;
+            private final ExampleProbe example;
 
-            private BabylonianEventNodeFactory(Env env, ProbeMap probeMap, BabylonianExample example) {
+            private BabylonianEventNodeFactory(Env env, BabylonianAnalysisResult result, ExampleProbe example) {
                 this.env = env;
-                this.probeMap = probeMap;
+                this.result = result;
                 this.example = example;
             }
 
             public ExecutionEventNode create(EventContext context) {
-                return new BabylonianEventNode(env, probeMap, example, context);
+                return new BabylonianEventNode(env, result, example, context);
             }
 
             private static final class BabylonianEventNode extends ExecutionEventNode {
@@ -360,35 +358,36 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
                 @Child private ExecutableNode inlineExecutionNode;
 
                 private final Env env;
-                private final ProbeMap probeMap;
-                private final BabylonianExample example;
+                private final BabylonianAnalysisResult result;
+                private final ExampleProbe example;
                 private final EventContext context;
 
-                private BabylonianEventNode(Env env, ProbeMap probeMap, BabylonianExample example, EventContext context) {
+                private BabylonianEventNode(Env env, BabylonianAnalysisResult result, ExampleProbe example, EventContext context) {
                     this.env = env;
-                    this.probeMap = probeMap;
+                    this.result = result;
                     this.example = example;
                     this.context = context;
                 }
 
                 @Override
-                public void onReturnValue(VirtualFrame frame, Object result) {
+                public void onReturnValue(VirtualFrame frame, Object value) {
                     SourceSection section = context.getInstrumentedSourceSection();
+                    Source source = section.getSource();
                     Function<String, Object> inlineEvalutator = expression -> {
                         try {
-                            return executeInline(frame, Source.newBuilder(section.getSource().getLanguage(), expression, INLINE_PROBE_EXPRESSION_NAME).build());
+                            return executeInline(frame, Source.newBuilder(source.getLanguage(), expression, INLINE_PROBE_EXPRESSION_NAME).build());
                         } catch (Exception e) {
                             return e.getMessage();
                         }
                     };
-                    URI uri = section.getSource().getURI();
-                    TriggerlineToProbesMap triggerlineToProbesMap = probeMap.get(uri);
-                    ArrayList<AbstractProbe> probes = triggerlineToProbesMap.get(section.getStartLine());
-                    if (probes != null) {
-                        for (AbstractProbe probe : probes) {
-                            probe.apply(example, section, result, inlineEvalutator);
-                        }
+                    BabylonianAnalysisFileResult fileResult = result.getOrCreateFile(source.getURI(), source.getLanguage());
+                    int startLine = section.getStartLine();
+                    AbstractProbe probe = fileResult.get(startLine);
+                    if (probe == null) {
+                        probe = new OrphanProbe(null, startLine);
+                        fileResult.addProbe(startLine, probe);
                     }
+                    probe.apply(example, section, value, inlineEvalutator);
                 }
 
                 @Override

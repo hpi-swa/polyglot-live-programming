@@ -7,18 +7,7 @@
 'use strict';
 
 import * as vscode from 'vscode';
-
-export interface ObjectInformation {
-    readonly displayString: string;
-    readonly error?: string;
-    readonly expression?: string;
-    readonly interopProperties: string[];
-    readonly metaQualifiedName?: string;
-    readonly metaSimpleName?: string;
-    readonly memberNames?: string[];
-    readonly memberDisplayStrings?: string[];
-    readonly elements?: string[];
-}
+import { ObjectInformation } from './objectExplorerTypes';
 
 let objectExplorerProvider: ObjectExplorerTreeDataProvider;
 let objectExplorerView: vscode.TreeView<ObjectExplorerItem>;

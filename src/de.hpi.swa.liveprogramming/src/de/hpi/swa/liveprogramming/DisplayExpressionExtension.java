@@ -21,7 +21,7 @@ import com.oracle.truffle.api.source.Source;
 import de.hpi.swa.liveprogramming.types.ObjectInformation;
 
 @Registration(id = DisplayExpressionExtension.ID, name = DisplayExpressionExtension.NAME, version = DisplayExpressionExtension.VERSION, services = LSPExtension.class)
-public class DisplayExpressionExtension extends TruffleInstrument implements LSPExtension {
+public final class DisplayExpressionExtension extends TruffleInstrument implements LSPExtension {
     protected static final String ID = "display-expression-lsp-extension";
     protected static final String NAME = "Display Expression LSP Extension";
     protected static final String VERSION = "0.1";
@@ -30,7 +30,7 @@ public class DisplayExpressionExtension extends TruffleInstrument implements LSP
         return Arrays.asList(new DisplayExpressionCommand());
     }
 
-    private static class DisplayExpressionCommand implements LSPCommand {
+    private static final class DisplayExpressionCommand implements LSPCommand {
 
         public String getName() {
             return "display_expression";
