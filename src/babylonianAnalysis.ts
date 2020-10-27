@@ -88,7 +88,7 @@ function requestBabylonianAnalysis(document: vscode.TextDocument): void {
 			});
 		} else {
 			vscode.window.setStatusBarMessage('Babylonian Analysis not supported by language server.', 3000);
-			utils.suggestToInstallLiveTools();
+			utils.suggestToInstallLiveComponent();
 		}
 	});
 }
