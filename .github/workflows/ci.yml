@@ -29,7 +29,11 @@ jobs:
         mx.live-programming/utils.sh set-up-mx
         mx.live-programming/utils.sh shallow-clone-graal
         mx.live-programming/utils.sh set-up-labsjdk11 ~/
-    - name: Run mx gate
+    - name: Run 'mx checkstyle'
+      run: mx checkstyle --primary
+    - name: Run 'mx checkcopyrights'
+      run: mx checkcopyrights --primary -- --projects src,mx.live-programming
+    - name: Run 'mx gate'
       run: |
         source ~/venv/bin/activate
         export DEFAULT_DYNAMIC_IMPORTS=live-programming,/tools
