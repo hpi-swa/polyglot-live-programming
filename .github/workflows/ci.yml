@@ -34,6 +34,5 @@ jobs:
     - name: Run 'mx gate'
       run: |
         source ~/venv/bin/activate
-        export DEFAULT_DYNAMIC_IMPORTS=live-programming,/tools
-        export FORCE_BASH_LAUNCHERS=polyglot
+        export DEFAULT_DYNAMIC_IMPORTS=live-programming,/tools DISABLE_INSTALLABLES=false FORCE_BASH_LAUNCHERS=polyglot
         mx gate --strict-mode
