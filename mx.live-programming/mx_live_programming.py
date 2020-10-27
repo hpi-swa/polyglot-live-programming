@@ -61,14 +61,14 @@ class VSCodeExtensionBuildTask(mx.ArchivableBuildTask):
         vsce = join(_suite.dir, 'node_modules', '.bin', 'vsce')
         if not exists(vsce):
             mx.run(['npm', 'install', 'vsce'], nonZeroIsFatal=True, cwd=_suite.dir)
-        modules = [as_java_module(dist, mx.get_jdk()) for dist in _suite.dists if get_java_module_info(dist)]
-        if modules:
-            jarPaths = [m.jarpath for m in modules]
-            libDir = join(self.subject.dir, 'lib')
-            if exists(libDir):
-                mx.rmtree(libDir)
-            os.mkdir(libDir)
-            mx.run(['cp'] + jarPaths + [libDir], nonZeroIsFatal=True, cwd=self.subject.dir)
+
+        installablePath = mxPaths('LIVE_INSTALLABLE_JAVA11')
+        if exists(installablePath):
+            print('Copying LIVE_INSTALLABLE_JAVA11...')
+            mx.run(['cp', installablePath, self.subject.dir], nonZeroIsFatal=True, cwd=self.subject.dir)
+        else:
+            print('Not copying LIVE_INSTALLABLE_JAVA11.')
+
         mx.run(['npm', 'install'], nonZeroIsFatal=True, cwd=self.subject.dir)
         mx.run([vsce, 'package'], nonZeroIsFatal=True, cwd=self.subject.dir)
 
@@ -79,6 +79,15 @@ class VSCodeExtensionBuildTask(mx.ArchivableBuildTask):
             for path in [join(self.subject.dir, m) for m in ['lib', 'node_modules', 'out']]:
                 if exists(path):
                     mx.rmtree(path)
+
+
+def mxPaths(spec):
+    spec_dict = mx.LayoutDistribution._as_source_dict('dependency:' + spec, 'NO_DIST', 'NO_DEST')
+    d = mx.dependency(spec_dict['dependency'])
+    include = spec_dict.get('path')
+    for source_file, arcname in d.getArchivableResults(single=include is None):
+        if include is None or glob_match(include, arcname):
+            return source_file
 
 
 mx_sdk_vm.register_graalvm_component(mx_sdk_vm.GraalVmTool(

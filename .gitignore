@@ -18,6 +18,7 @@ mx.live-programming/eclipse-launches
 mx.live-programming/env
 mxbuild/
 *.dist
+*-installable-*.jar
 
 # Eclipse
 .classpath
