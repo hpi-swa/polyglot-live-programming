@@ -11,6 +11,7 @@ import { initializeBabylonianAnalysis, getLastBabylonianResult } from './babylon
 import { initializeDisplayExpression } from './displayExpression';
 import { initializeObjectInspector } from './objectExplorer';
 import { UriHandler } from './uriHandler';
+import { initializeUtils } from './utils';
 import { GraalVMExtension } from './@types/graalvm';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -24,6 +25,7 @@ export function activate(context: vscode.ExtensionContext) {
 	const uriHandler = new UriHandler;
 	vscode.window.registerUriHandler(uriHandler);
 
+	initializeUtils(context);
 	initializeObjectInspector();
 	initializeDisplayExpression(context);
 	initializeBabylonianAnalysis(context, graalVMExtension, uriHandler);

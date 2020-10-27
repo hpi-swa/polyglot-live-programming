@@ -14,6 +14,7 @@ import { DecorationManager } from './babylonianAnalysisDecorations';
 import { updateObjectExplorer } from './objectExplorer';
 import { ObjectInformation } from './objectExplorerTypes';
 import { UriHandler } from './uriHandler';
+import * as utils from './utils';
 import table from 'markdown-table';
 import { GraalVMExtension } from './@types/graalvm';
 
@@ -86,7 +87,8 @@ function requestBabylonianAnalysis(document: vscode.TextDocument): void {
 				}
 			});
 		} else {
-			vscode.window.showErrorMessage('Babylonian Analysis not supported by language server.');
+			vscode.window.setStatusBarMessage('Babylonian Analysis not supported by language server.', 3000);
+			utils.suggestToInstallLiveTools();
 		}
 	});
 }
