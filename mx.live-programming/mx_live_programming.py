@@ -6,7 +6,6 @@
 
 import mx
 import mx_sdk_vm
-from mx_javamodules import as_java_module, get_java_module_info
 
 import os
 from os.path import join, isfile, exists
@@ -64,10 +63,10 @@ class VSCodeExtensionBuildTask(mx.ArchivableBuildTask):
 
         installablePath = mxPaths('LIVE_INSTALLABLE_JAVA11')
         if exists(installablePath):
-            print('Copying LIVE_INSTALLABLE_JAVA11...')
+            print 'Copying LIVE_INSTALLABLE_JAVA11...'
             mx.run(['cp', installablePath, self.subject.dir], nonZeroIsFatal=True, cwd=self.subject.dir)
         else:
-            print('Not copying LIVE_INSTALLABLE_JAVA11.')
+            print 'Not copying LIVE_INSTALLABLE_JAVA11.'
 
         mx.run(['npm', 'install'], nonZeroIsFatal=True, cwd=self.subject.dir)
         mx.run([vsce, 'package'], nonZeroIsFatal=True, cwd=self.subject.dir)
@@ -86,7 +85,7 @@ def mxPaths(spec):
     d = mx.dependency(spec_dict['dependency'])
     include = spec_dict.get('path')
     for source_file, arcname in d.getArchivableResults(single=include is None):
-        if include is None or glob_match(include, arcname):
+        if include is None or mx.glob_match(include, arcname):
             return source_file
 
 

@@ -1,3 +1,4 @@
+// <Example :name="ten" n="16" />
 // <Example :name="eight" n="8" />
 function fibonacci(n) {
     let x = 0;

@@ -10,4 +10,3 @@ plotFunction <- function(func, start, end) {
   print(xyplot(y ~ x, type="p", cex=2, pch=16))
   grDevices:::svg.off()
 }
- 
