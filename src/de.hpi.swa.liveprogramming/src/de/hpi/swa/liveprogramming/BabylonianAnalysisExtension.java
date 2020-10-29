@@ -122,10 +122,12 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
                 Source source = server.getSource(uri);
                 if (source != null && source.hasCharacters()) {
                     scanDocument(result.getOrCreateFile(uri, source.getLanguage()), source);
-                    try {
-                        envInternal.parse(source).call();
-                    } catch (Throwable e) {
-                        return BabylonianAnalysisTerminationResult.create(startMillis, e.getMessage());
+                    if (source.getCharacters().toString().contains(EXAMPLE_PREFIX)) {
+                        try {
+                            envInternal.parse(source).call();
+                        } catch (Throwable e) {
+                            return BabylonianAnalysisTerminationResult.create(startMillis, e.getMessage());
+                        }
                     }
                 }
             }
