@@ -55,6 +55,7 @@ import de.hpi.swa.liveprogramming.types.AbstractProbe;
 import de.hpi.swa.liveprogramming.types.AbstractProbe.AssertionProbe;
 import de.hpi.swa.liveprogramming.types.AbstractProbe.ExampleProbe;
 import de.hpi.swa.liveprogramming.types.AbstractProbe.OrphanProbe;
+import de.hpi.swa.liveprogramming.types.AbstractProbe.SelectionProbe;
 import de.hpi.swa.liveprogramming.types.AbstractProbe.StatementProbe;
 import de.hpi.swa.liveprogramming.types.AbstractProbe.StatementProbeWithExpression;
 import de.hpi.swa.liveprogramming.types.BabylonianAnalysisResult;
@@ -101,9 +102,21 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
         public Object execute(LSPServerAccessor server, Env envInternal, List<Object> arguments) {
             startMillis = System.currentTimeMillis();
             URI targetURI = URI.create((String) arguments.get(0));
+
             Set<URI> openFileURIs = server.getOpenFileURI2LangId().keySet();
 
             BabylonianAnalysisResult result = new BabylonianAnalysisResult();
+
+            if (arguments.size() == 3) {
+                try {
+                    int selectedLineNumber = (int) arguments.get(1) + 1;
+                    String selectedText = ((String) arguments.get(2));
+                    String languageId = Source.findLanguage(targetURI.toURL());
+                    result.getOrCreateFile(targetURI, languageId).addProbe(selectedLineNumber, new SelectionProbe(null, selectedLineNumber, selectedText));
+                } catch (ClassCastException | IOException e) {
+                    printError(e.getMessage());
+                }
+            }
 
             for (URI uri : openFileURIs) {
                 Source source = server.getSource(uri);
@@ -353,7 +366,7 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
             }
 
             private static final class BabylonianEventNode extends ExecutionEventNode {
-                private static final String INLINE_PROBE_EXPRESSION_NAME = "<inline probe expression>";
+                private static final String INLINE_PROBE_EXPRESSION_NAME = "<probe>";
 
                 @Child private ExecutableNode inlineExecutionNode;
 

@@ -127,5 +127,6 @@ public final class BabylonianAnalysisResult {
         PROBE,
         ASSERTION,
         ORPHAN,
+        SELECTION,
     }
 }

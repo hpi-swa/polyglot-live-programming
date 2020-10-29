@@ -12,6 +12,7 @@ export enum ProbeType {
 	orphan = 'ORPHAN',
 	probe = 'PROBE',
 	replacement = 'REPLACEMENT',
+	selection = 'SELECTION',
 }
 
 export interface ExampleResult {

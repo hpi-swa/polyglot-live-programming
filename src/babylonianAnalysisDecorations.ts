@@ -37,6 +37,9 @@ export class DecorationManager {
 			case ba.ProbeType.probe:
 				backgroundColor = "#4e7ec2";
 				break;
+			case ba.ProbeType.selection:
+				backgroundColor = "#c24eb8";
+				break;
 			default:
 				console.warn('Unknown decoration type:', probe.probeType);
 		}

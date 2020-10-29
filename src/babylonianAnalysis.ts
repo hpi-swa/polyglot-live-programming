@@ -31,14 +31,15 @@ const ON_CHANGE_TIMEOUT = 1250;
 const FAILURE_RESULT = {timeToRunMillis: 0, error: 'No result'} as ba.BabylonianAnalysisTerminationResult;
 const DECORATIONS = new DecorationManager;
 
-let lastBabylonianRequest: NodeJS.Timeout|null = null;
+let lastBabylonianTimeout: NodeJS.Timeout|null = null;
 let lastBabylonianResult: ba.BabylonianAnalysisResult;
 
 export function initializeBabylonianAnalysis(context: vscode.ExtensionContext, graalVMExtension: vscode.Extension<GraalVMExtension>, uriHandler: UriHandler) {
 	context.subscriptions.push(vscode.commands.registerCommand('vscode-live-programming.toggleBabylonianAnalysis', () => {
 		toggleBabylonianAnalysis();
 	}));
-	context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(event => handleOnDidChangeTextDocument(event.document)));
+	context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(handleOnDidChangeTextDocument));
+	context.subscriptions.push(vscode.window.onDidChangeTextEditorSelection(handleOnDidChangeTextEditorSelection));
 	registerBabylonianAnalysisResultHandler(graalVMExtension);
 	uriHandler.onPath('/show-probe-details', showProbeDetails);
 	uriHandler.onPath('/debug-probe', debugProbe);
@@ -71,13 +72,18 @@ function registerBabylonianAnalysisResultHandler(graalVMExtension: vscode.Extens
 	});
 }
 
-function requestBabylonianAnalysis(document: vscode.TextDocument): void {
+function requestBabylonianAnalysis(document: vscode.TextDocument, selectedLine?: number, selectedText?: string): void {
 	serverSupportAvailable().then(available => {
 		if (available) {
 			let disposable = vscode.window.setStatusBarMessage('Performing Babylonian Analysis...');
 			console.log('Requesting Babylonian Analysis...');
 			console.time('Babylonian Analysis execution');
-			vscode.commands.executeCommand('babylonian_analysis', pathToFileURL(document.uri.fsPath)).then((resultObject) => {
+			const args: Object[] = [ pathToFileURL(document.uri.fsPath).toString() ];
+			if (selectedLine && selectedText) {
+				args.push(selectedLine);
+				args.push(selectedText);
+			}
+			vscode.commands.executeCommand('babylonian_analysis', ...args).then((resultObject) => {
 				const result = resultObject as ba.BabylonianAnalysisTerminationResult || FAILURE_RESULT;
 				console.timeEnd('Babylonian Analysis execution');
 				console.log(`Time to run on GraalLS backend: ${result.timeToRunMillis}ms`);
@@ -101,12 +107,23 @@ async function serverSupportAvailable(): Promise<boolean> {
 	}
 }
 
-function handleOnDidChangeTextDocument(document: vscode.TextDocument) {
+function handleOnDidChangeTextDocument(event: vscode.TextDocumentChangeEvent) {
+	const document = event.document;
 	if (isEnabled && document.getText().includes(EXAMPLE_PREFIX)) {
-		if (lastBabylonianRequest) {
-			clearTimeout(lastBabylonianRequest);
+		if (lastBabylonianTimeout) {
+			clearTimeout(lastBabylonianTimeout);
 		}
-		lastBabylonianRequest = setTimeout(() => requestBabylonianAnalysis(document), ON_CHANGE_TIMEOUT);
+		lastBabylonianTimeout = setTimeout(() => requestBabylonianAnalysis(document), ON_CHANGE_TIMEOUT);
+	}
+}
+
+function handleOnDidChangeTextEditorSelection(event: vscode.TextEditorSelectionChangeEvent) {
+	if (isEnabled && event.selections.length === 1) {
+		const selection = event.selections[0];
+		if (!selection.isEmpty) {
+			const selectedText = event.textEditor.document.getText(selection);
+			requestBabylonianAnalysis(event.textEditor.document, selection.start.line, selectedText);
+		}
 	}
 }
 

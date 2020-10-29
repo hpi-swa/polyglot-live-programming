@@ -188,6 +188,25 @@ public abstract class AbstractProbe {
         }
     }
 
+    public static final class SelectionProbe extends AbstractProbe {
+        private final String expression;
+
+        public SelectionProbe(String exampleNameOrNull, int lineNumber, String expression) {
+            super(exampleNameOrNull, lineNumber);
+            this.expression = expression;
+        }
+
+        @Override
+        protected ObjectInformation getObjectInformation(ExampleProbe example, SourceSection section, Object value, Function<String, Object> inlineEvaluator) {
+            return ObjectInformation.create(expression, inlineEvaluator.apply(expression));
+        }
+
+        @Override
+        protected ProbeType getProbeType() {
+            return ProbeType.SELECTION;
+        }
+    }
+
     public static final class StatementProbe extends AbstractProbe {
         public StatementProbe(String exampleNameOrNull, int lineNumber) {
             super(exampleNameOrNull, lineNumber);
