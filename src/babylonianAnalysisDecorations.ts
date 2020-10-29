@@ -10,13 +10,14 @@ import * as vscode from 'vscode';
 import * as ba from './babylonianAnalysisTypes';
 
 export class DecorationManager {
-	cache: { [key: string]: { [key: string]: { examples: string[], probeType: ba.ProbeType, decorationType: vscode.TextEditorDecorationType } } } = {};
+	cache: { [key: string]: { [key: string]: { cacheIdentifier: string, decorationType: vscode.TextEditorDecorationType } } } = {};
 
-	getDecorationType(fileUri: string, probe: ba.AbstractProbe): vscode.TextEditorDecorationType {
+	getDecorationType(fileUri: string, isFinalResult: boolean, probe: ba.AbstractProbe): vscode.TextEditorDecorationType {
 		const lineMap = this.cache[fileUri] = (this.cache[fileUri] || {});
+		const cacheIdentifier = this.toCacheIdentifier(fileUri, isFinalResult, probe);
 		if (lineMap[probe.lineIndex]) {
 			const lineCache = lineMap[probe.lineIndex];
-			if (lineCache.probeType === probe.probeType && hasSameOrderedContents(lineCache.examples, probe.examples.map(e => e.exampleName).sort())) {
+			if (lineCache.cacheIdentifier === cacheIdentifier) {
 				return lineCache.decorationType;
 			}
 			lineMap[probe.lineIndex].decorationType.dispose();
@@ -43,12 +44,27 @@ export class DecorationManager {
 			default:
 				console.warn('Unknown decoration type:', probe.probeType);
 		}
+		if (isFinalResult && probe.examples.length === 0) {
+			backgroundColor = "lightgrey";
+		}
 		lineMap[probe.lineIndex] = {
-			examples: probe.examples.map(e => e.exampleName).sort(),
-			probeType: probe.probeType,
+			cacheIdentifier: cacheIdentifier,
 			decorationType: this.createDecorationType(color, backgroundColor)
 		};
 		return lineMap[probe.lineIndex].decorationType;
+	}
+
+	private toCacheIdentifier(fileUri: string, isFinalResult: boolean, probe: ba.AbstractProbe): string {
+		const components = [fileUri, String(probe.lineIndex)];
+		if (isFinalResult && probe.examples.length === 0) {
+			components.push('empty-final-result');
+		} else {
+			components.concat(probe.examples.map(e => e.exampleName).sort());
+			if (probe.probeType === ba.ProbeType.assertion) {
+				components.push(String(allAssertionsTrue(probe.examples)));
+			}
+		}
+		return components.join('-');
 	}
 
 	private createDecorationType(color: string, backgroundColor: string): vscode.TextEditorDecorationType {
@@ -62,7 +78,7 @@ export class DecorationManager {
 	}
 
 	clearAllDecorations() {
-		Object.keys(this.cache).map(this.clearDecorationsOfUri);
+		Object.keys(this.cache).map(fileUri => this.clearDecorationsOfUri(fileUri));
 	}
 	
 	clearRedundantDecorations(result : ba.BabylonianAnalysisResult) {
@@ -100,8 +116,4 @@ function allAssertionsTrue(results: ba.ExampleResult[]): boolean {
 		}
 	}
 	return true;
-}
-
-function hasSameOrderedContents(array1: Object[], array2: Object[]) {
-	return array1.length === array2.length && array1.every((value, index) => value === array2[index]);
 }

@@ -26,13 +26,14 @@ const EXAMPLE_PREFIX = '<Example ';
 const EMOJIS = ['⏰', '🌈', '🌏', '🌽', '🍄', '🍔', '🍕', '🍙', '🍟', '🍪', '🍰', '🎁', '🎂', '🎉', '🏆', '🏠', '🐟', '🐰', '👑', '👻', '💊', '📣', '💰', '📌', '📦', '📷', '🔑', '🔥', '🔫', '🚀', '🚕', '🚁'];
 const EMOJIS_LENGTH = EMOJIS.length;
 
-const ON_CHANGE_TIMEOUT = 1250;
+const ON_CHANGE_TIMEOUT = 1000;
 
 const FAILURE_RESULT = {timeToRunMillis: 0, error: 'No result'} as ba.BabylonianAnalysisTerminationResult;
 const DECORATIONS = new DecorationManager;
 
 let lastBabylonianTimeout: NodeJS.Timeout|null = null;
 let lastBabylonianResult: ba.BabylonianAnalysisResult;
+let lastDidChangeTimeout: NodeJS.Timeout|null = null;
 
 export function initializeBabylonianAnalysis(context: vscode.ExtensionContext, graalVMExtension: vscode.Extension<GraalVMExtension>, uriHandler: UriHandler) {
 	context.subscriptions.push(vscode.commands.registerCommand('vscode-live-programming.toggleBabylonianAnalysis', () => {
@@ -49,15 +50,15 @@ export function getLastBabylonianResult() {
 	return lastBabylonianResult;
 }
 
-function handleBabylonianAnalysisResult(result : ba.BabylonianAnalysisResult) {
+function handleBabylonianAnalysisResult(result : ba.BabylonianAnalysisResult, isFinal = false) {
 	lastBabylonianResult = result;
 	DECORATIONS.clearRedundantDecorations(result);
 	for (const file of result.files) {
 		const editor = vscode.window.visibleTextEditors.filter(editor => editor.document.uri.toString() === file.uri)[0];
 		if (editor) {
 			for (const probe of file.probes) {
-				const decorationType = DECORATIONS.getDecorationType(file.uri, probe);
-				const decorationOptions = createDecorationOptions(editor, file, probe);
+				const decorationType = DECORATIONS.getDecorationType(file.uri, isFinal, probe);
+				const decorationOptions = createDecorationOptions(editor, isFinal, file, probe);
 				editor.setDecorations(decorationType, [decorationOptions]);
 			}
 		}
@@ -90,6 +91,8 @@ function requestBabylonianAnalysis(document: vscode.TextDocument, selectedLine?:
 				disposable.dispose();
 				if (result.error) {
 					vscode.window.setStatusBarMessage(`BA failed: ${result.error}`, 1000);
+				} else if (result.result) {
+					handleBabylonianAnalysisResult(result.result, true);
 				}
 			});
 		} else {
@@ -109,7 +112,7 @@ async function serverSupportAvailable(): Promise<boolean> {
 
 function handleOnDidChangeTextDocument(event: vscode.TextDocumentChangeEvent) {
 	const document = event.document;
-	if (isEnabled && document.getText().includes(EXAMPLE_PREFIX)) {
+	if (isEnabled && containsExemplifiedCode(document)) {
 		if (lastBabylonianTimeout) {
 			clearTimeout(lastBabylonianTimeout);
 		}
@@ -118,11 +121,19 @@ function handleOnDidChangeTextDocument(event: vscode.TextDocumentChangeEvent) {
 }
 
 function handleOnDidChangeTextEditorSelection(event: vscode.TextEditorSelectionChangeEvent) {
-	if (isEnabled && event.selections.length === 1) {
+	const document = event.textEditor.document;
+	if (isEnabled && containsExemplifiedCode(document) && event.selections.length === 1) {
 		const selection = event.selections[0];
 		if (!selection.isEmpty) {
-			const selectedText = event.textEditor.document.getText(selection);
-			requestBabylonianAnalysis(event.textEditor.document, selection.start.line, selectedText);
+			const selectedText = document.getText(selection);
+			if (event.kind === vscode.TextEditorSelectionChangeKind.Mouse) {
+				requestBabylonianAnalysis(document, selection.start.line, selectedText);
+			} else {
+				if (lastDidChangeTimeout) {
+					clearTimeout(lastDidChangeTimeout);
+				}
+				lastDidChangeTimeout = setTimeout(() => requestBabylonianAnalysis(document, selection.start.line, selectedText), 2 * ON_CHANGE_TIMEOUT);
+			}
 		}
 	}
 }
@@ -132,7 +143,7 @@ function toggleBabylonianAnalysis() {
 	let notification;
 	if (isEnabled) {
 		const editor = vscode.window.activeTextEditor;
-		if (editor) {
+		if (editor && containsExemplifiedCode(editor.document)) {
 			requestBabylonianAnalysis(editor.document);
 		}
 		notification = 'Babylonian Analysis enabled';
@@ -151,9 +162,9 @@ function joinDisplayStrings(values: ObjectInformation[]): string {
 	return strings.join('\u2794');
 }
 
-function createDecorationText(probe: ba.AbstractProbe): string {
+function createDecorationText(isFinalResult: boolean, probe: ba.AbstractProbe): string {
 	if (probe.examples.length === 0) {
-		return 'pending\u2026';
+		return isFinalResult ? '<not reached>' : 'pending\u2026';
 	}
 	const probeTexts: string[] = [];
 	for (const example of probe.examples) {
@@ -216,7 +227,7 @@ function pushProbeWithMultipleObservedValues(tableData: string[][], fileResult: 
 	}
 }
 
-function createDecorationOptions(editor: vscode.TextEditor, file: ba.BabylonianAnalysisFileResult, probe: ba.AbstractProbe): vscode.DecorationOptions {
+function createDecorationOptions(editor: vscode.TextEditor, isFinalResult: boolean, file: ba.BabylonianAnalysisFileResult, probe: ba.AbstractProbe): vscode.DecorationOptions {
 	return {
 		hoverMessage: probe.examples.length === 0 ? [] : [
 			'### Babylonian Analysis',
@@ -225,7 +236,8 @@ function createDecorationOptions(editor: vscode.TextEditor, file: ba.BabylonianA
 		range: editor.document.lineAt(probe.lineIndex).range,
 		renderOptions: {
 			after: {
-				contentText: `\u202F${createDecorationText(probe)}\u202F`,
+				contentText: `\u202F${createDecorationText(isFinalResult, probe)}\u202F`,
+				fontStyle: isFinalResult && probe.examples.length === 0 ? 'italic' : undefined,
 			},
 		},
 	};
@@ -303,6 +315,10 @@ function findExampleExpression(exampleName: string): string | undefined {
 			}
 		}
 	}
+}
+
+function containsExemplifiedCode(document: vscode.TextDocument): boolean {
+	return document.getText().includes(EXAMPLE_PREFIX);
 }
 
 function prettifyExampleName(name: string) {

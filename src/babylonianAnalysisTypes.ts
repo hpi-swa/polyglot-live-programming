@@ -21,22 +21,23 @@ export interface ExampleResult {
 }
 
 export interface AbstractProbe {
-	readonly probeType: ProbeType,
-	readonly lineIndex: number,
-	readonly examples: ExampleResult[],
+	readonly probeType: ProbeType;
+	readonly lineIndex: number;
+	readonly examples: ExampleResult[];
 }
 
 export interface BabylonianAnalysisFileResult {
 	readonly uri: string;
 	readonly languageId: string;
-    readonly probes: AbstractProbe[];
+	readonly probes: AbstractProbe[];
 }
 
 export interface BabylonianAnalysisResult {
-    readonly files: BabylonianAnalysisFileResult[];
+	readonly files: BabylonianAnalysisFileResult[];
 }
 
 export interface BabylonianAnalysisTerminationResult {
-    readonly timeToRunMillis: number;
-    readonly error?: string;
+	readonly timeToRunMillis: number;
+	readonly result?: BabylonianAnalysisResult;
+	readonly error?: string;
 }

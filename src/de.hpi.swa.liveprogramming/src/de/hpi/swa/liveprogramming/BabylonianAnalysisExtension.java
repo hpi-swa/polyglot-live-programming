@@ -141,10 +141,8 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
                 }
             } finally {
                 future.cancel(true);
-                // Send all decorations
-                server.sendCustomNotification(BABYLONIAN_ANALYSIS_RESULT_METHOD, result.toJSON());
             }
-            return BabylonianAnalysisTerminationResult.create(startMillis, null);
+            return BabylonianAnalysisTerminationResult.create(startMillis, result);
         }
 
         public int getTimeoutMillis() {

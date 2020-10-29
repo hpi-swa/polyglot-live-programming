@@ -64,6 +64,13 @@ public final class BabylonianAnalysisResult {
     }
 
     public static final class BabylonianAnalysisTerminationResult {
+        public static JSONObject create(long startMillis, BabylonianAnalysisResult result) {
+            JSONObject json = new JSONObject();
+            json.put("timeToRunMillis", System.currentTimeMillis() - startMillis);
+            json.put("result", result.toJSON());
+            return json;
+        }
+
         public static JSONObject create(long startMillis, String error) {
             JSONObject json = new JSONObject();
             json.put("timeToRunMillis", System.currentTimeMillis() - startMillis);
