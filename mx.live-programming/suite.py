@@ -22,7 +22,7 @@ suite = {
 
     "release": False,
     "groupId": "de.hpi.swa.liveprogramming",
-    "url": "https://github.com/hpi-swa-lab/vscode-live-programming",
+    "url": "https://github.com/hpi-swa-lab/polyglot-live-programming",
 
     "developer": {
         "name": "Fabio Niephaus and contributors",
@@ -32,9 +32,9 @@ suite = {
     },
 
     "scm": {
-        "url": "https://github.com/hpi-swa-lab/vscode-live-programming/",
-        "read": "https://github.com/hpi-swa-lab/vscode-live-programming.git",
-        "write": "git@github.com:hpi-swa-lab/vscode-live-programming.git",
+        "url": "https://github.com/hpi-swa-lab/polyglot-live-programming/",
+        "read": "https://github.com/hpi-swa-lab/polyglot-live-programming.git",
+        "write": "git@github.com:hpi-swa-lab/polyglot-live-programming.git",
     },
 
     # ==========================================================================

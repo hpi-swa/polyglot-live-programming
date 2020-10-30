@@ -1,19 +1,20 @@
 {
-	"name": "vscode-live-programming",
-	"displayName": "HPI-SWA Live Programming for VS Code",
-	"description": "Live Programming for VSCode powered by GraalVM",
+	"name": "polyglot-live-programming",
+	"displayName": "Polyglot Live Programming",
+	"description": "Polyglot Live Programming with GraalVM, the LSP, and VS Code",
 	"publisher": "hpi-swa",
 	"author": {
 		"name": "Software Architecture Group, Hasso Plattner Institute"
 	},
 	"version": "0.0.1",
-	"homepage": "https://github.com/hpi-swa-lab/vscode-live-programming",
+	"icon": "images/logo.png",
+	"homepage": "https://github.com/hpi-swa/polyglot-live-programming",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/hpi-swa-lab/vscode-live-programming.git"
+		"url": "https://github.com/hpi-swa/polyglot-live-programming.git"
 	},
 	"bugs": {
-		"url": "https://github.com/hpi-swa-lab/vscode-live-programming/issues"
+		"url": "https://github.com/hpi-swa/polyglot-live-programming/issues"
 	},
 	"engines": {
 		"vscode": "^1.50.0"
@@ -33,33 +34,33 @@
 	"contributes": {
 		"commands": [
 			{
-				"command": "vscode-live-programming.displayExpression",
+				"command": "polyglot-live-programming.displayExpression",
 				"title": "Display Expression",
 				"category": "Live Programming"
 			},
 			{
-				"command": "vscode-live-programming.toggleBabylonianAnalysis",
+				"command": "polyglot-live-programming.toggleBabylonianAnalysis",
 				"title": "Toggle Babylonian Analysis",
 				"category": "Live Programming"
 			}
 		],
 		"keybindings": [
 			{
-				"command": "vscode-live-programming.displayExpression",
+				"command": "polyglot-live-programming.displayExpression",
 				"key": "ctrl+d"
 			},
 			{
-				"command": "vscode-live-programming.toggleBabylonianAnalysis",
+				"command": "polyglot-live-programming.toggleBabylonianAnalysis",
 				"key": "ctrl+b"
 			}
 		],
 		"menus": {
 			"editor/context": [
 				{
-					"command": "vscode-live-programming.displayExpression"
+					"command": "polyglot-live-programming.displayExpression"
 				},
 				{
-					"command": "vscode-live-programming.toggleBabylonianAnalysis"
+					"command": "polyglot-live-programming.toggleBabylonianAnalysis"
 				}
 			]
 		},

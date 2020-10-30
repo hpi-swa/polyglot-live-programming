@@ -61,7 +61,7 @@ function requestDisplayExpression(editor: vscode.TextEditor, selectedRange: vsco
 }
 
 export function initializeDisplayExpression(context: vscode.ExtensionContext): void {
-    context.subscriptions.push(vscode.commands.registerCommand('vscode-live-programming.displayExpression', () => {
+    context.subscriptions.push(vscode.commands.registerCommand('polyglot-live-programming.displayExpression', () => {
 		displayExpression();
     }));
 }

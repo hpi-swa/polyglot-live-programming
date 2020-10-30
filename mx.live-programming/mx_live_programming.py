@@ -75,7 +75,7 @@ class VSCodeExtensionBuildTask(mx.ArchivableBuildTask):
         if not forBuild:
             for f in self.subject.getResults():
                 os.remove(f)
-            for path in [join(self.subject.dir, m) for m in ['lib', 'node_modules', 'out']]:
+            for path in [join(self.subject.dir, m) for m in ['node_modules', 'out']]:
                 if exists(path):
                     mx.rmtree(path)
 

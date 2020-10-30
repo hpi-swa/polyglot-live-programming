@@ -36,7 +36,7 @@ let lastBabylonianResult: ba.BabylonianAnalysisResult;
 let lastDidChangeTimeout: NodeJS.Timeout|null = null;
 
 export function initializeBabylonianAnalysis(context: vscode.ExtensionContext, graalVMExtension: vscode.Extension<GraalVMExtension>, uriHandler: UriHandler) {
-	context.subscriptions.push(vscode.commands.registerCommand('vscode-live-programming.toggleBabylonianAnalysis', () => {
+	context.subscriptions.push(vscode.commands.registerCommand('polyglot-live-programming.toggleBabylonianAnalysis', () => {
 		toggleBabylonianAnalysis();
 	}));
 	context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(handleOnDidChangeTextDocument));
@@ -244,11 +244,11 @@ function createDecorationOptions(editor: vscode.TextEditor, isFinalResult: boole
 }
 
 function createProbeInspectionUrl(fileResult: ba.BabylonianAnalysisFileResult, lineIndex: number, exampleName: string, observedValueIndex: number) {
-    return `vscode://hpi-swa.vscode-live-programming/show-probe-details?fileUri=${encodeURIComponent(fileResult.uri)}&lineIndex=${lineIndex}&exampleName=${encodeURIComponent(exampleName)}&observedValueIndex=${observedValueIndex}`;
+    return `vscode://hpi-swa.polyglot-live-programming/show-probe-details?fileUri=${encodeURIComponent(fileResult.uri)}&lineIndex=${lineIndex}&exampleName=${encodeURIComponent(exampleName)}&observedValueIndex=${observedValueIndex}`;
 }
 
 function createProbeDebugUrl(fileResult: ba.BabylonianAnalysisFileResult, lineIndex: number, expression: string) {
-    return `vscode://hpi-swa.vscode-live-programming/debug-probe?fileUri=${encodeURIComponent(fileResult.uri)}&languageId=${fileResult.languageId}&lineIndex=${lineIndex}&expression=${encodeURIComponent(expression)}`;
+    return `vscode://hpi-swa.polyglot-live-programming/debug-probe?fileUri=${encodeURIComponent(fileResult.uri)}&languageId=${fileResult.languageId}&lineIndex=${lineIndex}&expression=${encodeURIComponent(expression)}`;
 }
 
 function createDebugSuffix(fileResult: ba.BabylonianAnalysisFileResult, lineIndex: number, example: ba.ExampleResult) {
