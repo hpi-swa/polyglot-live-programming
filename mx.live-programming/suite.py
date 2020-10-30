@@ -13,7 +13,7 @@ suite = {
     "mxversion": "5.270.4",
     "versionConflictResolution": "latest",
 
-    "version": "20.2.0-dev",
+    "version": "20.3.0-dev",
     "live-programming:dependencyMap": {
         "jdk11": "11.0.8",
         "jdk11_update": "10",
@@ -44,9 +44,9 @@ suite = {
         "suites": [{
             "name": "tools",
             "subdir": True,
-            "version": "ae3d461459b3052631454f73657b2157af0ebd4e",
+            "version": "f6df7ff546fe826be6ec91801b6b4f4310460157",
             "urls": [{
-                "url": "https://github.com/hpi-swa-lab/graal",
+                "url": "https://github.com/oracle/graal",
                 "kind": "git"
             }],
         }],
