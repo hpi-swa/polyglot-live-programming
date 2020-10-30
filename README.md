@@ -70,11 +70,18 @@ art. 1, 33 pages, 2018.
 [![doi][prog18_doi]][prog18_paper] [![Preprint][preprint]][prog18_pdf]
 
 
+## Related Projects
+
+- [Babylonian/S][babylonian_s] and [Babylonian/JS][babylonian_js]
+
+
 ## License
 
 This work is released under the [MIT license][license].
 
 
+[babylonian_js]: https://lively-kernel.org/lively4/lively4-core/start.html?load=https://lively-kernel.org/lively4/lively4-core/src/babylonian-programming-editor/demos/index.md
+[babylonian_s]: https://github.com/hpi-swa-lab/babylonian-programming-smalltalk
 [ci_badge]: https://img.shields.io/github/workflow/status/hpi-swa/polyglot-live-programming/CI.svg
 [ci_url]: https://github.com/hpi-swa/polyglot-live-programming/actions?query=workflow%3ACI
 [cop19_doi]: https://img.shields.io/badge/doi-10.1145/3340671.3343358-blue.svg
