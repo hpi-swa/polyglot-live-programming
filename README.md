@@ -2,15 +2,17 @@
 
 [![VS Marketplace][vsm_badge]][vscode_extension] [![CI][ci_badge]][ci_url]
 
-This repository contains extensions to enable Polyglot Live Programming with
-[GraalVM][graalvm] and the [Language Server Protocol (LSP)][lsp].
+Polyglot Live Programming with [GraalVM][graalvm], the
+[Language Server Protocol (LSP)][lsp], and [VS Code][vscode].
 
 
 ## Getting Started
 
 1. Install [our VS Code extension][vscode_extension]. This will also install the [GraalVM VS Code extension][graalvm_vscode].
-2. Select or install a GraalVM on your system using the GraalVM extension.
+2. Select or install a GraalVM 20.3 or later on your system using the GraalVM extension.
 3. Reload VS Code and wait until it is connected to the GraalLS.
+4. Run the "Display Expression" and "Babylonian Analysis" commands while programming  
+   ([here are some examples][examples] to play around with).
 
 
 ## Demos
@@ -80,6 +82,7 @@ This work is released under the [MIT license][license].
 [cop19_pdf]: http://hirschfeld.org/writings/media/ReinLinckeRamsonMattisNiephausHirschfeld_2019_ImplementingBabylonianSbyPuttingExamplesIntoContextsTracingInstrumentationForExampleBasedLiveProgrammingAsAUseCaseForContextOrientedProgramming_AcmDL.pdf
 [cop19]: https://2019.ecoop.org/details/COP-2019-papers/9/Implementing-Babylonian-S-by-Putting-Examples-into-Contexts-Tracing-Instrumentation-
 [demo_selection_probes]: https://user-images.githubusercontent.com/2368856/97712431-b6540480-1abe-11eb-9f73-efe7983ee3b9.gif
+[examples]: https://github.com/hpi-swa/polyglot-live-programming/tree/main/examples
 [graalvm_vscode]: https://www.graalvm.org/tools/vscode-extension/
 [graalvm]: https://www.graalvm.org
 [license]: https://github.com/hpi-swa/polyglot-live-programming/blob/master/LICENSE
@@ -102,4 +105,5 @@ This work is released under the [MIT license][license].
 [prog19_pdf]: https://arxiv.org/pdf/1902.00549v1
 [prog19]: https://programming-journal.org/2019/3/issue3/
 [vscode_extension]: https://marketplace.visualstudio.com/items?itemName=hpi-swa.polyglot-live-programming
+[vscode]: https://code.visualstudio.com
 [vsm_badge]: https://img.shields.io/badge/vs%20marketplace-download-brightgreen
