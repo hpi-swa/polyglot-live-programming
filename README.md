@@ -72,7 +72,7 @@ art. 1, 33 pages, 2018.
 
 ## Related Projects
 
-- [Babylonian/S][babylonian_s] and [Babylonian/JS][babylonian_js]
+- [TruffleSqueak][trufflesqueak], [Babylonian/S][babylonian_s] and [Babylonian/JS][babylonian_js]
 
 
 ## License
@@ -111,6 +111,7 @@ This work is released under the [MIT license][license].
 [prog19_paper]: https://doi.org/10.22152/programming-journal.org/2019/3/9
 [prog19_pdf]: https://arxiv.org/pdf/1902.00549v1
 [prog19]: https://programming-journal.org/2019/3/issue3/
+[trufflesqueak]: https://github.com/hpi-swa/trufflesqueak
 [vscode_extension]: https://marketplace.visualstudio.com/items?itemName=hpi-swa.polyglot-live-programming
 [vscode]: https://code.visualstudio.com
 [vsm_badge]: https://img.shields.io/badge/vs%20marketplace-download-brightgreen
