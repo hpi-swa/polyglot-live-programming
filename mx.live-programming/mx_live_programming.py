@@ -61,6 +61,8 @@ class VSCodeExtensionBuildTask(mx.ArchivableBuildTask):
         if not exists(vsce):
             mx.run(['npm', 'install', 'vsce'], nonZeroIsFatal=True, cwd=_suite.dir)
 
+        print 'Waiting 1s for LIVE_INSTALLABLE_JAVA11...'
+        mx.run(['sleep', '1'], nonZeroIsFatal=True, cwd=self.subject.dir)
         installablePath = mxPaths('LIVE_INSTALLABLE_JAVA11')
         if exists(installablePath):
             print 'Copying LIVE_INSTALLABLE_JAVA11...'
