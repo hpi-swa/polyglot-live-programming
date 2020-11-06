@@ -48,8 +48,10 @@ public class ObjectInformation extends JSONBase {
                 long membersArraySize = lib.getArraySize(membersObj);
                 for (int i = 0; i < membersArraySize; i++) {
                     String memberName = lib.asString(lib.readArrayElement(membersObj, i));
-                    memberNames.put(memberName);
-                    memberStrings.put(lib.toDisplayString(lib.readMember(result, memberName)));
+                    if (lib.isMemberReadable(result, memberName)) {
+                        memberNames.put(memberName);
+                        memberStrings.put(lib.toDisplayString(lib.readMember(result, memberName)));
+                    }
                 }
                 json.put("memberNames", memberNames);
                 json.put("memberDisplayStrings", memberStrings);

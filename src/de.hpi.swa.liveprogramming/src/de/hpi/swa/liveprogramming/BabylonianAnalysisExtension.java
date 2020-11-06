@@ -307,14 +307,22 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
             String languageId = example.getLanguageId();
             LanguageInfo languageInfo = env.getLanguages().get(languageId);
             Object scope = env.getScope(languageInfo);
+            String targetIdentifier = example.getTargetIdentifier();
             Object targetObject;
+            if (!INTEROP.isMemberReadable(scope, targetIdentifier)) {
+                String error = targetIdentifier + " not readable";
+                example.addObservedValue(ObjectInformation.createError("<unknown>", error, error));
+                return;
+            }
             try {
-                targetObject = INTEROP.readMember(scope, example.getTargetIdentifier());
+                targetObject = INTEROP.readMember(scope, targetIdentifier);
             } catch (UnsupportedMessageException | UnknownIdentifierException e) {
-                e.printStackTrace();
+                example.addObservedValue(ObjectInformation.createError("<unknown>", e.getMessage(), e.getMessage()));
                 return;
             }
             if (!INTEROP.isExecutable(targetObject)) {
+                String error = targetIdentifier + " not executable";
+                example.addObservedValue(ObjectInformation.createError("<unknown>", error, error));
                 return;
             }
             final Object[] arguments;
