@@ -25,7 +25,7 @@ class ObjectExplorerItem extends vscode.TreeItem {
     }
 }
 
-let currentObjectInfo: ObjectExplorerItem[] = [ new ObjectExplorerItem('', 'Display an expression first...', 'info') ];
+let currentObjectInfo: ObjectExplorerItem[] = [ new ObjectExplorerItem('', 'Nothing to show yet...', 'info') ];
 
 export function initializeObjectInspector(): void {
     objectExplorerProvider = new ObjectExplorerTreeDataProvider();

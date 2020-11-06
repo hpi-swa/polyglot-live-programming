@@ -32,10 +32,12 @@ function requestDisplayExpression(editor: vscode.TextEditor, selectedRange: vsco
     return new Promise<boolean>((resolve) => {
         vscode.commands.getCommands().then((allCommands: string[]) => {
             if (allCommands.includes('display_expression')) {
+                const disposable = vscode.window.setStatusBarMessage('Executing expression...');
                 vscode.commands.executeCommand('display_expression', pathToFileURL(editor.document.uri.fsPath), selectedText).then((result) => {
+                    disposable.dispose();
                     if (result) {
                         const info = result as ObjectInformation;
-                        const text = info.displayString;
+                        const text = info.error ? info.error : info.displayString;
                         const textLines = text.split(/\r\n|\r|\n/);
                         editor.insertSnippet(new vscode.SnippetString(text), selectedRange.end);
                         let endPos;
@@ -45,9 +47,7 @@ function requestDisplayExpression(editor: vscode.TextEditor, selectedRange: vsco
                             endPos = new vscode.Position(selectedRange.end.line + textLines.length - 1, textLines[textLines.length - 1].length);
                         }
                         editor.selection = new vscode.Selection(selectedRange.end, endPos);
-                        if (!info.error) {
-                            updateObjectExplorer(info);
-                        }
+                        updateObjectExplorer(info);
                         resolve(true);
                     } else {
                         resolve(false);
