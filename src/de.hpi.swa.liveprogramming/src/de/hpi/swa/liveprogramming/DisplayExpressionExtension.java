@@ -54,7 +54,7 @@ public final class DisplayExpressionExtension extends TruffleInstrument implemen
         }
 
         public Object onTimeout(List<Object> arguments) {
-            return ObjectInformation.createError((String) arguments.get(1), "", "<statement took too long to evaluate>").getJSON();
+            return ObjectInformation.createError((String) arguments.get(1), "", "Expression took too long to run.").getJSON();
         }
     }
 
