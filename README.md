@@ -36,6 +36,7 @@ Reflections on Everything to do with Programming and Software (Onward!)
 Systems, Languages, and Applications (OOPSLA), pages 108-124, Chicago, United
 States, November 17-18, 2020, ACM DL.  
 [![doi][onward20_doi]][onward20_paper] [![Preprint][preprint]][onward20_pdf]
+[![Talk][talk]][onward20_talk]
 
 ### 2019
 - Fabio Niephaus, Tim Felgentreff, and Robert Hirschfeld. *GraalSqueak: Toward a
@@ -101,6 +102,7 @@ This work is released under the [MIT license][license].
 [onward20_doi]: https://img.shields.io/badge/doi-10.1145/3426428.3426919-blue.svg
 [onward20_paper]: https://doi.org/10.1145/3426428.3426919
 [onward20_pdf]: http://fniephaus.com/2020/onward20-live-programming.pdf
+[onward20_talk]: http://youtube.com/watch?v=vBevZ2MhoGE
 [onward20]: https://2020.splashcon.org/details/splash-2020-Onward-papers/7/Example-Based-Live-Programming-for-Everyone-Building-Language-agnostic-Tools-for-Liv
 [preprint]: https://img.shields.io/badge/preprint-download-blue.svg
 [prog18_doi]: https://img.shields.io/badge/doi-10.22152/programming--journal.org/2019/3/1-blue.svg
