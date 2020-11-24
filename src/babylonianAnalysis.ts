@@ -17,6 +17,7 @@ import { UriHandler } from './uriHandler';
 import * as utils from './utils';
 import table from 'markdown-table';
 import { GraalVMExtension } from './@types/graalvm';
+import { fstat, readFileSync } from 'fs';
 
 let isEnabled = false;
 let isServerSupportAvailable = false;
@@ -37,7 +38,7 @@ let lastDidChangeTimeout: NodeJS.Timeout|null = null;
 
 export function initializeBabylonianAnalysis(context: vscode.ExtensionContext, graalVMExtension: vscode.Extension<GraalVMExtension>, uriHandler: UriHandler) {
 	context.subscriptions.push(vscode.commands.registerCommand('polyglot-live-programming.toggleBabylonianAnalysis', () => {
-		toggleBabylonianAnalysis();
+		toggleBabylonianAnalysis(context);
 	}));
 	context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(handleOnDidChangeTextDocument));
 	context.subscriptions.push(vscode.window.onDidChangeTextEditorSelection(handleOnDidChangeTextEditorSelection));
@@ -50,8 +51,9 @@ export function getLastBabylonianResult() {
 	return lastBabylonianResult;
 }
 
-function handleBabylonianAnalysisResult(result : ba.BabylonianAnalysisResult, isFinal = false) {
+function handleBabylonianAnalysisResult(result : ba.BabylonianAnalysisResult, isFinal = false, context?: vscode.ExtensionContext) {
 	lastBabylonianResult = result;
+	let resultsArray = []
 	DECORATIONS.clearRedundantDecorations(result);
 	for (const file of result.files) {
 		const editor = vscode.window.visibleTextEditors.filter(editor => editor.document.uri.toString() === file.uri)[0];
@@ -60,10 +62,84 @@ function handleBabylonianAnalysisResult(result : ba.BabylonianAnalysisResult, is
 				const decorationType = DECORATIONS.getDecorationType(file.uri, isFinal, probe);
 				const decorationOptions = createDecorationOptions(editor, isFinal, file, probe);
 				editor.setDecorations(decorationType, [decorationOptions]);
+				//resultsArray.push(createDecorationText(isFinal, probe))
+				resultsArray.push(probe)
+			}
+			if (context) {
+				//addNewWebViewForResult(context, resultsArray)
+				addNewWebViewForResult(context, resultsArray)
 			}
 		}
 	}
 }
+
+function getWebviewContent() {
+	const path = '/Users/theoradig/Workspace/polyglot-live-programming/src/html/webview_textarea.html'
+	return readFileSync(path, 'utf-8')
+  }
+
+/*
+function addEditorToWebView(result: Array<string>) {
+	const path_editor = '/Users/theoradig/Workspace/polyglot-live-programming/src/html/webview_editor.html'
+	var str = ''
+	var res
+	for (res of result) {
+		str = str.concat(res).concat('\n')
+	}
+	return readFileSync(path_editor, 'utf-8').replace('$result', '`'.concat(str).concat('`'))
+}
+
+export function addNewWebViewForResult(context: vscode.ExtensionContext, result: Array<string>) {
+	const panel = vscode.window.createWebviewPanel(
+		'babylonianResult', 
+		'Babylonian Result',
+		vscode.ViewColumn.Two, 
+		{enableScripts: true}
+	  );
+	panel.webview.html = getWebviewContent();
+	panel.reveal(vscode.ViewColumn.Two)
+	context.subscriptions.push(panel)
+	sendResultsToWebView(result, panel)
+  }
+  */
+ export function addNewWebViewForResult(context: vscode.ExtensionContext, result: Array<ba.AbstractProbe>) {
+	const panel = vscode.window.createWebviewPanel(
+		'babylonianResult', 
+		'Babylonian Result',
+		vscode.ViewColumn.Two, 
+		{enableScripts: true}
+	  );
+	panel.webview.html = getWebviewContent();
+	panel.reveal(vscode.ViewColumn.Two)
+	context.subscriptions.push(panel)
+	sendResultsToWebView(result, panel)
+  }
+
+  function sendResultsToWebView(result: Array<ba.AbstractProbe>, panel: vscode.WebviewPanel) {
+	var probe
+	for (probe of result) {
+		/*if (probe.probeType == 'EXAMPLE') {
+			var msg = ''
+			probe.examples[0].observedValues.forEach(value => msg = msg.concat(value.displayString))
+			panel.webview.postMessage({example: "\n".concat(msg), line: probe.lineIndex})
+		} else if (probe.probeType == 'PROBE') {
+			var msg = ''
+			probe.examples[0].observedValues.forEach(value => msg = msg.concat(value.displayString))
+			panel.webview.postMessage({probe: "\n".concat(msg), line: probe.lineIndex})
+		}
+		*/
+		panel.webview.postMessage({probe: "\n".concat(createDecorationText(true, probe)), line: probe.lineIndex})
+	}
+		
+  }
+/*
+  function sendResultsToWebView(result: Array<string>, panel: vscode.WebviewPanel) {
+	var x
+	for (x of result) {
+		panel.webview.postMessage({result: "\n".concat(x)})
+	}
+  }
+  */
 
 function registerBabylonianAnalysisResultHandler(graalVMExtension: vscode.Extension<GraalVMExtension>) : void {
 	graalVMExtension.exports.onClientNotification(BABYLONIAN_ANALYSIS_RESULT_METHOD, handleBabylonianAnalysisResult).then((result: boolean) => {
@@ -73,7 +149,7 @@ function registerBabylonianAnalysisResultHandler(graalVMExtension: vscode.Extens
 	});
 }
 
-function requestBabylonianAnalysis(document: vscode.TextDocument, selectedLine?: number, selectedText?: string): void {
+function requestBabylonianAnalysis(document: vscode.TextDocument, selectedLine?: number, selectedText?: string, context?: vscode.ExtensionContext): void {
 	serverSupportAvailable().then(available => {
 		if (available) {
 			let disposable = vscode.window.setStatusBarMessage('Performing Babylonian Analysis...');
@@ -92,7 +168,11 @@ function requestBabylonianAnalysis(document: vscode.TextDocument, selectedLine?:
 				if (result.error) {
 					vscode.window.setStatusBarMessage(`BA failed: ${result.error}`, 1000);
 				} else if (result.result) {
-					handleBabylonianAnalysisResult(result.result, true);
+					if (context) {
+						handleBabylonianAnalysisResult(result.result, true, context);
+					} else {
+						handleBabylonianAnalysisResult(result.result, true);
+					}
 				}
 			});
 		} else {
@@ -138,13 +218,13 @@ function handleOnDidChangeTextEditorSelection(event: vscode.TextEditorSelectionC
 	}
 }
 
-function toggleBabylonianAnalysis() {
+function toggleBabylonianAnalysis(context: vscode.ExtensionContext) {
 	isEnabled = !isEnabled;
 	let notification;
 	if (isEnabled) {
 		const editor = vscode.window.activeTextEditor;
 		if (editor && containsExemplifiedCode(editor.document)) {
-			requestBabylonianAnalysis(editor.document);
+			requestBabylonianAnalysis(editor.document, undefined, undefined, context);
 		}
 		notification = 'Babylonian Analysis enabled';
 	} else {

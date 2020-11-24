@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <!--<link rel="stylesheet" href="/Users/theoradig/Workspace/polyglot-live-programming/src/html/styles.css"/>-->
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+   </head>
+   <style>
+        #webViewText {
+            resize: none;
+            background:transparent;
+            border:none;
+            color: white;
+        }
+   </style>
+   <body>
+      <textarea id="webViewText" cols="100" rows="100">
+	</textarea>
+      <script>
+         var textArea = 'webViewText'
+
+         window.addEventListener('message', event => {
+         
+            const message = event.data;
+
+            var oldContent = document.getElementById(textArea).innerHTML;
+
+            if (message.example) {
+               //addLine(message.probe, message.line)
+               var spaces = '';
+               for (var x = 1; x <= message.line; x++) {
+                  spaces = spaces.concat('\n');
+               }
+               var newContent = oldContent + spaces + message.example + '(Should be on line:' +  message.line + ')';
+            }
+            if (message.probe) {
+               //addLine(message.probe, message.line)
+               var spaces = '';
+               for (var x = 0; x <= message.line; x++) {
+                  spaces = spaces.concat('\n');
+               }
+               //var newContent = oldContent + spaces + message.probe + '(Should be on line:' +  message.line + ')';
+               var newContent = oldContent + message.probe + '(Should be on line:' +  message.line + ')';
+            }
+            
+            document.getElementById(textArea).innerHTML = newContent;
+         });
+
+         function addLine(text, line) {
+            let ta = document.querySelector("webViewText"), 
+            split_text = ta.textContent.split(/\n/gmi);
+
+            if (line <= split_text.length - 1) split_text.splice(line - 1, 0, text);
+            else split_text.push(text);
+            ta.textContent = split_text.join("\n");
+         }
+      </script>
+   </body>
+</html>
