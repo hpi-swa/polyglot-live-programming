@@ -62,54 +62,28 @@ function handleBabylonianAnalysisResult(result : ba.BabylonianAnalysisResult, is
 				const decorationType = DECORATIONS.getDecorationType(file.uri, isFinal, probe);
 				const decorationOptions = createDecorationOptions(editor, isFinal, file, probe);
 				editor.setDecorations(decorationType, [decorationOptions]);
-				//resultsArray.push(createDecorationText(isFinal, probe))
 				resultsArray.push(probe)
 			}
 			if (context) {
-				//addNewWebViewForResult(context, resultsArray)
 				addNewWebViewForResult(context, resultsArray)
 			}
 		}
 	}
 }
 
-function getWebviewContent() {
-	const path = '/Users/theoradig/Workspace/polyglot-live-programming/src/html/webview_textarea.html'
-	return readFileSync(path, 'utf-8')
-  }
-
-/*
-function addEditorToWebView(result: Array<string>) {
-	const path_editor = '/Users/theoradig/Workspace/polyglot-live-programming/src/html/webview_editor.html'
-	var str = ''
-	var res
-	for (res of result) {
-		str = str.concat(res).concat('\n')
-	}
-	return readFileSync(path_editor, 'utf-8').replace('$result', '`'.concat(str).concat('`'))
-}
-
-export function addNewWebViewForResult(context: vscode.ExtensionContext, result: Array<string>) {
-	const panel = vscode.window.createWebviewPanel(
-		'babylonianResult', 
-		'Babylonian Result',
-		vscode.ViewColumn.Two, 
-		{enableScripts: true}
-	  );
-	panel.webview.html = getWebviewContent();
-	panel.reveal(vscode.ViewColumn.Two)
-	context.subscriptions.push(panel)
-	sendResultsToWebView(result, panel)
-  }
-  */
  export function addNewWebViewForResult(context: vscode.ExtensionContext, result: Array<ba.AbstractProbe>) {
 	const panel = vscode.window.createWebviewPanel(
 		'babylonianResult', 
 		'Babylonian Result',
 		vscode.ViewColumn.Two, 
-		{enableScripts: true}
+		{enableScripts: true,
+		localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, 'out')]}
 	  );
-	panel.webview.html = getWebviewContent();
+	let html = readFileSync(path.join(context.extensionPath, 'html/webview_textarea.html'), 'utf-8')
+	const scriptPathOnDisk = vscode.Uri.joinPath(context.extensionUri, 'out', 'webviewHandling.js');
+	const scriptUri = panel.webview.asWebviewUri(scriptPathOnDisk);
+	html = html.replace('${scriptUri}', scriptUri.toString())
+	panel.webview.html = html
 	panel.reveal(vscode.ViewColumn.Two)
 	context.subscriptions.push(panel)
 	sendResultsToWebView(result, panel)
@@ -132,14 +106,6 @@ export function addNewWebViewForResult(context: vscode.ExtensionContext, result:
 	}
 		
   }
-/*
-  function sendResultsToWebView(result: Array<string>, panel: vscode.WebviewPanel) {
-	var x
-	for (x of result) {
-		panel.webview.postMessage({result: "\n".concat(x)})
-	}
-  }
-  */
 
 function registerBabylonianAnalysisResultHandler(graalVMExtension: vscode.Extension<GraalVMExtension>) : void {
 	graalVMExtension.exports.onClientNotification(BABYLONIAN_ANALYSIS_RESULT_METHOD, handleBabylonianAnalysisResult).then((result: boolean) => {
