@@ -7,7 +7,7 @@
 'use strict';
 
 const textArea: string = 'webViewText';
-let slider: HTMLElement = document.getElementById("rangeSlider")!;
+let slider: any = document.getElementById("rangeSlider");
 let observedValues: Array<string> = [];
 let observedProbes: Array<string> = [];
 let activeOutput: string;
