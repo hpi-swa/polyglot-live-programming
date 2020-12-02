@@ -36,9 +36,7 @@ let lastBabylonianResult: ba.BabylonianAnalysisResult;
 let lastDidChangeTimeout: NodeJS.Timeout|null = null;
 
 export function initializeBabylonianAnalysis(context: vscode.ExtensionContext, graalVMExtension: vscode.Extension<GraalVMExtension>, uriHandler: UriHandler) {
-	context.subscriptions.push(vscode.commands.registerCommand('polyglot-live-programming.toggleBabylonianAnalysis', () => {
-		toggleBabylonianAnalysis();
-	}));
+	context.subscriptions.push(vscode.commands.registerCommand('polyglot-live-programming.toggleBabylonianAnalysis', toggleBabylonianAnalysis));
 	context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(handleOnDidChangeTextDocument));
 	context.subscriptions.push(vscode.window.onDidChangeTextEditorSelection(handleOnDidChangeTextEditorSelection));
 	registerBabylonianAnalysisResultHandler(graalVMExtension);
@@ -76,7 +74,7 @@ function registerBabylonianAnalysisResultHandler(graalVMExtension: vscode.Extens
 function requestBabylonianAnalysis(document: vscode.TextDocument, selectedLine?: number, selectedText?: string): void {
 	serverSupportAvailable().then(available => {
 		if (available) {
-			let disposable = vscode.window.setStatusBarMessage('Performing Babylonian Analysis...');
+			const disposable = vscode.window.setStatusBarMessage('Performing Babylonian Analysis...');
 			console.log('Requesting Babylonian Analysis...');
 			console.time('Babylonian Analysis execution');
 			const args: Object[] = [ pathToFileURL(document.uri.fsPath).toString() ];
