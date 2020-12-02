@@ -9,7 +9,7 @@ Polyglot Live Programming with [GraalVM][graalvm], the
 ## Getting Started
 
 1. Install [our VS Code extension][vscode_extension]. This will also install the [GraalVM VS Code extension][graalvm_vscode] (`0.5.0` or later).
-2. Select or install a GraalVM `20.3` or later on your system using the GraalVM extension.
+2. Select or install a Java 11 based GraalVM `20.3` or later on your system using the GraalVM extension.
 3. Run the "Install the Live component with the GraalVM Updater (gu)" command via the [Command Palette][vscode_commands].
 3. Disable the "Language Server: In Process Server" option in the settings of the GraalVM extension:  
 <kbd>Preferences</kbd> → <kbd>Settings</kbd> → <kbd>Extensions</kbd> → <kbd>GraalVM</kbd> → <kbd>Language Server: In Process Server</kbd>  
