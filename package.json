@@ -39,6 +39,11 @@
 				"category": "Live Programming"
 			},
 			{
+				"command": "polyglot-live-programming.installLiveComponent",
+				"title": "Install the Live component with the GraalVM Updater (gu)",
+				"category": "Live Programming"
+			},
+			{
 				"command": "polyglot-live-programming.toggleBabylonianAnalysis",
 				"title": "Toggle Babylonian Analysis",
 				"category": "Live Programming"
