@@ -47,6 +47,11 @@
 				"command": "polyglot-live-programming.toggleBabylonianAnalysis",
 				"title": "Toggle Babylonian Analysis",
 				"category": "Live Programming"
+			},
+			{
+				"command": "polyglot-live-programming.toggleSelectionProbes",
+				"title": "Toggle Selection Probes",
+				"category": "Live Programming"
 			}
 		],
 		"keybindings": [

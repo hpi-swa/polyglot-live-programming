@@ -19,6 +19,7 @@ import table from 'markdown-table';
 import { GraalVMExtension } from './@types/graalvm';
 
 let isEnabled = false;
+let isSelectionProbesEnabled = false;
 let isServerSupportAvailable = false;
 
 export const BABYLONIAN_ANALYSIS_RESULT_METHOD: string = 'textDocument/babylonianAnalysisResult';
@@ -37,6 +38,7 @@ let lastDidChangeTimeout: NodeJS.Timeout|null = null;
 
 export function initializeBabylonianAnalysis(context: vscode.ExtensionContext, graalVMExtension: vscode.Extension<GraalVMExtension>, uriHandler: UriHandler) {
 	context.subscriptions.push(vscode.commands.registerCommand('polyglot-live-programming.toggleBabylonianAnalysis', toggleBabylonianAnalysis));
+	context.subscriptions.push(vscode.commands.registerCommand('polyglot-live-programming.toggleSelectionProbes', toggleSelectionProbes));
 	context.subscriptions.push(vscode.workspace.onDidChangeTextDocument(handleOnDidChangeTextDocument));
 	context.subscriptions.push(vscode.window.onDidChangeTextEditorSelection(handleOnDidChangeTextEditorSelection));
 	registerBabylonianAnalysisResultHandler(graalVMExtension);
@@ -120,7 +122,7 @@ function handleOnDidChangeTextDocument(event: vscode.TextDocumentChangeEvent) {
 
 function handleOnDidChangeTextEditorSelection(event: vscode.TextEditorSelectionChangeEvent) {
 	const document = event.textEditor.document;
-	if (isEnabled && containsExemplifiedCode(document) && event.selections.length === 1) {
+	if (isEnabled && isSelectionProbesEnabled && containsExemplifiedCode(document) && event.selections.length === 1) {
 		const selection = event.selections[0];
 		if (!selection.isEmpty) {
 			const selectedText = document.getText(selection);
@@ -144,12 +146,21 @@ function toggleBabylonianAnalysis() {
 		if (editor && containsExemplifiedCode(editor.document)) {
 			requestBabylonianAnalysis(editor.document);
 		}
-		notification = 'Babylonian Analysis enabled';
+		notification = 'Babylonian Analysis enabled.';
 	} else {
 		DECORATIONS.clearAllDecorations();
-		notification = 'Babylonian Analysis disabled';
+		notification = 'Babylonian Analysis disabled.';
 	}
 	vscode.window.setStatusBarMessage(notification, 3000);
+}
+
+function toggleSelectionProbes() {
+	if (isEnabled) {
+		isSelectionProbesEnabled = !isSelectionProbesEnabled;
+		vscode.window.setStatusBarMessage('Selection Probes ' + (isSelectionProbesEnabled ? 'enabled.' : 'disabled.'), 3000);
+	} else {
+		vscode.window.setStatusBarMessage('Babylonian Analysis must be enabled first.', 3000);
+	}
 }
 
 function joinDisplayStrings(values: ObjectInformation[]): string {

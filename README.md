@@ -21,6 +21,7 @@ Polyglot Live Programming with [GraalVM][graalvm], the
 ## Demos
 
 ### Babylonian Programming: Selection Probes
+*To use this feature, enable "Selection Probes" via the [Command Palette][vscode_commands].*
 ![Selection Probes][demo_selection_probes]
 
 
