@@ -117,6 +117,7 @@ This work is released under the [MIT license][license].
 [prog19_paper]: https://doi.org/10.22152/programming-journal.org/2019/3/9
 [prog19_pdf]: https://arxiv.org/pdf/1902.00549v1
 [prog19]: https://programming-journal.org/2019/3/issue3/
+[talk]: https://img.shields.io/badge/talk-watch%20on%20YouTube-blue.svg
 [trufflesqueak]: https://github.com/hpi-swa/trufflesqueak
 [vscode_commands]: https://code.visualstudio.com/docs/getstarted/tips-and-tricks#_command-palette
 [vscode_extension]: https://marketplace.visualstudio.com/items?itemName=hpi-swa.polyglot-live-programming
