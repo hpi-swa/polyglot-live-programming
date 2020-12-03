@@ -10,7 +10,6 @@ import * as vscode from 'vscode';
 import { pathToFileURL } from 'url';
 import { updateObjectExplorer } from './objectExplorer';
 import { ObjectInformation } from './objectExplorerTypes';
-import * as utils from './utils';
 
 function displayExpression() {
     const editor = vscode.window.activeTextEditor;
@@ -55,7 +54,6 @@ function requestDisplayExpression(editor: vscode.TextEditor, selectedRange: vsco
                     }
                 });
             } else {
-                utils.suggestToInstallLiveComponent();
                 resolve(false);
             }
         });
@@ -63,5 +61,7 @@ function requestDisplayExpression(editor: vscode.TextEditor, selectedRange: vsco
 }
 
 export function initializeDisplayExpression(context: vscode.ExtensionContext): void {
-    context.subscriptions.push(vscode.commands.registerCommand('polyglot-live-programming.displayExpression', displayExpression));
+    context.subscriptions.push(vscode.commands.registerCommand('polyglot-live-programming.displayExpression', () => {
+		displayExpression();
+    }));
 }
