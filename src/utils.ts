@@ -14,6 +14,7 @@ let extensionPath: string | undefined;
 
 export function initializeUtils(context: vscode.ExtensionContext) {
     extensionPath = context.extensionPath;
+    context.subscriptions.push(vscode.commands.registerCommand('polyglot-live-programming.installLiveComponent', suggestToInstallLiveComponent));
 }
 
 export async function suggestToInstallLiveComponent() {

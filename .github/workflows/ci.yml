@@ -9,13 +9,14 @@ jobs:
     steps:
     - name: Clone repository
       uses: actions/checkout@v2
+    - name: Setup python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+        architecture: x64
     - name: Set up dependencies
       run: |
-        # Install pylint
-        sudo apt update -qq && sudo apt install -qq python-pip python-virtualenv
-        virtualenv ~/venv
-        source ~/venv/bin/activate
-        pip install --quiet astroid==1.1.0 pylint==1.1.0
+        pip install --quiet pylint==2.4
         # Download Eclipse SDK
         eclipse_tar="ci-dep-eclipse-SDK-4.5.2-linux-gtk-x86_64.tar.gz"
         eclipse_tar_path="${HOME}/${eclipse_tar}"
@@ -33,6 +34,5 @@ jobs:
       run: mx checkcopyrights --primary -- --projects src,mx.live-programming
     - name: Run 'mx gate'
       run: |
-        source ~/venv/bin/activate
         export DEFAULT_DYNAMIC_IMPORTS=live-programming,/tools DISABLE_INSTALLABLES=false FORCE_BASH_LAUNCHERS=polyglot
         mx gate --strict-mode

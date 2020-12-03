@@ -6,7 +6,8 @@
 	"author": {
 		"name": "Software Architecture Group, Hasso Plattner Institute"
 	},
-	"version": "0.0.1",
+	"version": "0.0.3",
+	"preview": true,
 	"icon": "images/logo.png",
 	"homepage": "https://github.com/hpi-swa/polyglot-live-programming",
 	"repository": {
@@ -39,8 +40,18 @@
 				"category": "Live Programming"
 			},
 			{
+				"command": "polyglot-live-programming.installLiveComponent",
+				"title": "Install the Live component with the GraalVM Updater (gu)",
+				"category": "Live Programming"
+			},
+			{
 				"command": "polyglot-live-programming.toggleBabylonianAnalysis",
 				"title": "Toggle Babylonian Analysis",
+				"category": "Live Programming"
+			},
+			{
+				"command": "polyglot-live-programming.toggleSelectionProbes",
+				"title": "Toggle Selection Probes",
 				"category": "Live Programming"
 			}
 		],
@@ -105,13 +116,13 @@
 		"vsce": "^1.81.1"
 	},
 	"devDependencies": {
-		"@types/vscode": "^1.50.0",
 		"@types/glob": "^7.1.3",
 		"@types/mocha": "^8.0.0",
 		"@types/node": "^12.11.7",
-		"eslint": "^7.9.0",
+		"@types/vscode": "^1.50.0",
 		"@typescript-eslint/eslint-plugin": "^4.1.1",
 		"@typescript-eslint/parser": "^4.1.1",
+		"eslint": "^7.9.0",
 		"glob": "^7.1.6",
 		"mocha": "^8.1.3",
 		"typescript": "^4.0.2",

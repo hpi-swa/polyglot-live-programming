@@ -19,6 +19,7 @@ import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.tools.utils.json.JSONArray;
 import com.oracle.truffle.tools.utils.json.JSONObject;
 
+import de.hpi.swa.liveprogramming.BabylonianAnalysisExtension;
 import de.hpi.swa.liveprogramming.types.AbstractProbe.ExampleProbe;
 
 public final class BabylonianAnalysisResult {
@@ -50,7 +51,8 @@ public final class BabylonianAnalysisResult {
             for (Map.Entry<URI, BabylonianAnalysisFileResult> entry : files.entrySet()) {
                 Builder builder = SourceSectionFilter.newBuilder().tagIs(StandardTags.StatementTag.class);
                 // Check URI rather than source identity as source may change
-                builder.sourceIs(s -> s.getURI().equals(entry.getKey()));
+                final URI normalizedURI = BabylonianAnalysisExtension.toSourceURI(entry.getKey());
+                builder.sourceIs(s -> s.getURI().equals(normalizedURI));
                 // All probe and assertion lines
                 builder.lineIn(toIndexRanges(entry.getValue().probes.keySet()));
                 filters[filterIndex++] = builder.build();

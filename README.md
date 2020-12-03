@@ -8,16 +8,20 @@ Polyglot Live Programming with [GraalVM][graalvm], the
 
 ## Getting Started
 
-1. Install [our VS Code extension][vscode_extension]. This will also install the [GraalVM VS Code extension][graalvm_vscode].
-2. Select or install a GraalVM 20.3 or later on your system using the GraalVM extension.
-3. Reload VS Code and wait until it is connected to the GraalLS.
-4. Run the "Display Expression" and "Babylonian Analysis" commands while programming  
-   ([here are some examples][examples] to play around with).
+1. Install [our VS Code extension][vscode_extension]. This will also install the [GraalVM VS Code extension][graalvm_vscode] (`0.5.0` or later).
+2. Select or install a Java 11 based GraalVM `20.3` or later on your system using the GraalVM extension.
+3. Run the "Install the Live component with the GraalVM Updater (gu)" command via the [Command Palette][vscode_commands].
+3. Disable the "Language Server: In Process Server" option in the settings of the GraalVM extension:  
+<kbd>Preferences</kbd> → <kbd>Settings</kbd> → <kbd>Extensions</kbd> → <kbd>GraalVM</kbd> → <kbd>Language Server: In Process Server</kbd>  
+   and wait until it is connected to the GraalLS ("GraalLS is ready." shown in status bar).
+4. Run the "Display Expression" (<kbd>Ctrl + D</kbd>) and "Babylonian Analysis" (<kbd>Ctrl + B</kbd>) commands while programming  
+   ([Here are some examples][examples] to play around with).
 
 
 ## Demos
 
 ### Babylonian Programming: Selection Probes
+*To use this feature, enable "Selection Probes" via the [Command Palette][vscode_commands].*
 ![Selection Probes][demo_selection_probes]
 
 
@@ -113,7 +117,9 @@ This work is released under the [MIT license][license].
 [prog19_paper]: https://doi.org/10.22152/programming-journal.org/2019/3/9
 [prog19_pdf]: https://arxiv.org/pdf/1902.00549v1
 [prog19]: https://programming-journal.org/2019/3/issue3/
+[talk]: https://img.shields.io/badge/talk-watch%20on%20YouTube-blue.svg
 [trufflesqueak]: https://github.com/hpi-swa/trufflesqueak
+[vscode_commands]: https://code.visualstudio.com/docs/getstarted/tips-and-tricks#_command-palette
 [vscode_extension]: https://marketplace.visualstudio.com/items?itemName=hpi-swa.polyglot-live-programming
 [vscode]: https://code.visualstudio.com
 [vsm_badge]: https://img.shields.io/badge/vs%20marketplace-download-brightgreen
