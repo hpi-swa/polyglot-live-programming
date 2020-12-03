@@ -79,7 +79,7 @@ function requestBabylonianAnalysis(document: vscode.TextDocument, selectedLine?:
 			const disposable = vscode.window.setStatusBarMessage('Performing Babylonian Analysis...');
 			console.log('Requesting Babylonian Analysis...');
 			console.time('Babylonian Analysis execution');
-			const args: Object[] = [ pathToFileURL(document.uri.fsPath).toString() ];
+			const args: Object[] = [ document.uri.toString() ];
 			if (selectedLine && selectedText) {
 				args.push(selectedLine);
 				args.push(selectedText);

@@ -401,7 +401,7 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
                             return e.getMessage();
                         }
                     };
-                    BabylonianAnalysisFileResult fileResult = result.getOrCreateFile(source.getURI(), source.getLanguage());
+                    BabylonianAnalysisFileResult fileResult = result.getOrCreateFile(toVSCodeURI(source.getURI()), source.getLanguage());
                     int startLine = section.getStartLine();
                     AbstractProbe probe = fileResult.get(startLine);
                     if (probe == null) {
@@ -428,6 +428,31 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
                     return inlineExecutionNode.execute(frame);
                 }
             }
+        }
+    }
+
+    /**
+     * Convert Windows URIs (e.g. "file:///c%3A/Users/Bob/test.js") to Truffle Source URIs (e.g.
+     * "file:///C:/Users/Bob/test.js").
+     */
+    public static URI toSourceURI(URI uri) {
+        String string = uri.toString();
+        if (string.indexOf("%3A") == 9) {
+            return URI.create(string.substring(0, 8) + string.substring(8, 9).toUpperCase() + ":/" + string.substring(13));
+        } else {
+            return uri;
+        }
+    }
+
+    /**
+     * Reverse function of {@link #toSourceURI(URI)}.
+     */
+    private static URI toVSCodeURI(URI uri) {
+        String string = uri.toString();
+        if (string.lastIndexOf(':') == 9) {
+            return URI.create(string.substring(0, 8) + string.substring(8, 9).toLowerCase() + "%3A/" + string.substring(11));
+        } else {
+            return uri;
         }
     }
 
