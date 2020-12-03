@@ -13,14 +13,14 @@ suite = {
     "mxversion": "5.270.4",
     "versionConflictResolution": "latest",
 
-    "version": "20.3.0-dev",
+    "version": "20.3.0",
     "live-programming:dependencyMap": {
         "jdk11": "11.0.8",
         "jdk11_update": "10",
         "jvmci": "jvmci-20.3-b01",
     },
 
-    "release": False,
+    "release": True,
     "groupId": "de.hpi.swa.liveprogramming",
     "url": "https://github.com/hpi-swa-lab/polyglot-live-programming",
 
