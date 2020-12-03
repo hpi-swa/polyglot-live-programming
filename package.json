@@ -6,7 +6,7 @@
 	"author": {
 		"name": "Software Architecture Group, Hasso Plattner Institute"
 	},
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"preview": true,
 	"icon": "images/logo.png",
 	"homepage": "https://github.com/hpi-swa/polyglot-live-programming",
