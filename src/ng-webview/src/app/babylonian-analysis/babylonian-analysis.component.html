@@ -1,0 +1,9 @@
+<body>
+    <div *ngFor="let elem of result$" class="slidecontainer">
+        <p>{{ elem.probeType }}</p>
+        <div id="webViewText{{ elem.lineIndex }}"></div>
+        <input type="range" (change)="silderUpdate($event)" (oninput)="getSliderValue($event)" min="0"
+            max="{{ elem.examples[0].observedValues.length }}" value="0" class="slider"
+            id="rangeSlider{{ elem.lineIndex }}">
+    </div>
+</body>

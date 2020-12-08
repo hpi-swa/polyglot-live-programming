@@ -20,6 +20,7 @@
 		"mx.live-programming",
 		"mxbuild",
 		"node_modules",
-		".vscode-test"
+		".vscode-test",
+		"src/ng-webview"
 	]
 }

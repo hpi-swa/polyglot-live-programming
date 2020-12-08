@@ -100,6 +100,7 @@
 		"test": "node ./out/test/runTest.js"
 	},
 	"dependencies": {
+		"@angular/cli": "^11.0.3",
 		"@types/markdown-table": "^2.0.0",
 		"markdown-table": "^2.0.0",
 		"vsce": "^1.81.1"

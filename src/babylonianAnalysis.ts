@@ -18,6 +18,10 @@ import * as utils from './utils';
 import table from 'markdown-table';
 import { GraalVMExtension } from './@types/graalvm';
 import { readFileSync } from 'fs';
+import { ExtensionContext, window, ViewColumn, Uri } from 'vscode';
+import { watch } from 'fs';
+import { join } from 'path';
+import { environment } from './ng-webview/src/environments/environment';
 
 let isEnabled = false;
 let isServerSupportAvailable = false;
@@ -65,42 +69,54 @@ function handleBabylonianAnalysisResult(result : ba.BabylonianAnalysisResult, is
 				resultsArray.push(probe);
 			}
 			if (context) {
-				addNewWebViewForResult(context, resultsArray);
+				activate(context, resultsArray);
 			}
 		}
 	}
 }
 
- export function addNewWebViewForResult(context: vscode.ExtensionContext, result: Array<ba.AbstractProbe>) {
-	const panel = vscode.window.createWebviewPanel(
-		'babylonianResult', 
-		'Babylonian Result',
-		vscode.ViewColumn.Two, 
-		{enableScripts: true,
-		localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, 'out'), vscode.Uri.joinPath(context.extensionUri, 'html')]}
-	  );
-	panel.webview.html = getWebviewHtml(context, panel, result);
-	panel.reveal(vscode.ViewColumn.Two);
+// On activation
+export function activate(context: ExtensionContext, result: Array<ba.AbstractProbe>) {
+  const panel = vscode.window.createWebviewPanel(
+	'babylonianResult', 
+	'Babylonian Result',
+	vscode.ViewColumn.Two, 
+	{enableScripts: true,
+	localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, 'out'), vscode.Uri.joinPath(context.extensionUri, 'out/ng-webview')]}
+  );
+
+    const index = join(context.extensionPath, 'out/ng-webview/index.html');
+  
+    const matchLinks = /(href|src)="([^"]*)"/g;
+    const toUri = (_:any, prefix: 'href' | 'src', link: string) => {
+      // For <base href="#" />
+      if (link === '#') {
+        return `${prefix}="${link}"`;
+      }
+      // For scripts & links
+      const path = join(context.extensionPath, 'out/ng-webview', link);
+      const uri = Uri.file(path);
+      return `${prefix}="${panel.webview['asWebviewUri'](uri)}"`;
+    };
+
+    // Refresh the webview on update from the code
+    const updateWebview = async () => {
+      const html = readFileSync(index, 'utf-8');
+      panel.webview.html = html.replace(matchLinks, toUri);
+    };
+
+    if (!environment.production) {
+      watch(index).on('change', updateWebview);
+    }
+    updateWebview();
+    
 	context.subscriptions.push(panel);
 	sendResultsToWebView(result, panel);
-  }
+}
 
-  function getWebviewHtml(context: vscode.ExtensionContext, panel: vscode.WebviewPanel, result: Array<ba.AbstractProbe>) : string {
-	let html = readFileSync(path.join(context.extensionPath, 'html/webview.html'), 'utf-8');
-	const scriptPathOnDisk = vscode.Uri.joinPath(context.extensionUri, 'out', 'webviewHandling.js');
-	const scriptUri = panel.webview.asWebviewUri(scriptPathOnDisk);
-	const stylesPathOnDisk = vscode.Uri.joinPath(context.extensionUri, 'html', 'styles.css');
-	const stylestUri = panel.webview.asWebviewUri(stylesPathOnDisk);
-	return html.replace('${stylesUri}', stylestUri.toString()).replace('${scriptUri}', scriptUri.toString()).replace('${slideMax}', getNumberOfProbes(result).toString());
-  }
-
-  function getNumberOfProbes(result: Array<ba.AbstractProbe>) : number{
-	  return result[result.length - 1].examples[0].observedValues.length - 1;
-  }
-
-  function sendResultsToWebView(result: Array<ba.AbstractProbe>, panel: vscode.WebviewPanel) {
+function sendResultsToWebView(result: Array<ba.AbstractProbe>, panel: vscode.WebviewPanel) {
 	panel.webview.postMessage({result: result});
-	}
+}
 
 function registerBabylonianAnalysisResultHandler(graalVMExtension: vscode.Extension<GraalVMExtension>) : void {
 	graalVMExtension.exports.onClientNotification(BABYLONIAN_ANALYSIS_RESULT_METHOD, handleBabylonianAnalysisResult).then((result: boolean) => {
