@@ -112,20 +112,20 @@ export class BabylonianAnalysisComponent implements OnInit {
   private setInitialvalues(probe: AbstractProbe) {
     const initialValue: string = this.getObservedValues(probe)[0];
     const webViewTextId: string = this.textArea.concat(probe.lineIndex.toString());
-    this.waitForElement(webViewTextId, initialValue, function() {
+    this.waitForElement(webViewTextId, initialValue, function () {
       document.getElementById(arguments[0])!.innerHTML = arguments[1];
     });
   }
 
-  private waitForElement(elementId, initialValue, callBack){
-    window.setTimeout(function(){
+  private waitForElement(elementId, initialValue, callBack) {
+    window.setTimeout(function () {
       var element = document.getElementById(elementId);
-      if(element){
+      if (element) {
         callBack(elementId, initialValue);
-      }else{
+      } else {
         this.waitForElement(elementId, callBack);
       }
-    },500);
+    }, 500);
   }
 }
 
