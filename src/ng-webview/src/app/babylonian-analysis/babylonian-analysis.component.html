@@ -1,9 +1,27 @@
-<body>
-    <div *ngFor="let elem of result$" class="slidecontainer">
-        <p>{{ elem.probeType }}</p>
-        <div id="webViewText{{ elem.lineIndex }}"></div>
-        <input type="range" (change)="silderUpdate($event)" (oninput)="getSliderValue($event)" min="0"
-            max="{{ elem.examples[0].observedValues.length }}" value="0" class="slider"
-            id="rangeSlider{{ elem.lineIndex }}">
+<body class="body">
+    <div id="container">
+        <div id="background">
+            {{ background }}
+        </div>
+        <div id="slidercontainer">
+            <div *ngFor="let r of result$ | keyvalue" class="slidecontainer">
+                <!--<p>{{ elem.probeType }}</p>
+                <div id="webViewText{{ elem.lineIndex }}"></div>-->
+                <br *ngFor="let b of r.key">
+               <mat-slider
+                    [id]="r.value.lineIndex"
+                    [style.marginBottom]="'-1.25em'" 
+                    [style.marginTop]="'-1em'"
+                    thumbLabel
+                    [displayWith]="updateSliderLabel"
+                    (change)="onSliderChange($event)"
+                    [(ngModel)]="value"
+                    tickInterval="0"
+                    min="1"
+                    max="{{ r.value.examples[0].observedValues.length }}"></mat-slider>
+                    <div id="webViewText{{ r.value.lineIndex }}" class="text"></div>
+             <!--<mat-slider min="0" max="{{ elem.examples[0].observedValues.length }}" step="1" value="1" id="rangeSlider{{ elem.lineIndex }}" (change)="silderUpdate($event)"></mat-slider>-->
+            </div>
+        </div>
     </div>
 </body>

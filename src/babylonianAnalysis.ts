@@ -115,6 +115,16 @@ export function activate(context: ExtensionContext, result: Array<ba.AbstractPro
 }
 
 function sendResultsToWebView(result: Array<ba.AbstractProbe>, panel: vscode.WebviewPanel) {
+	const fileName = vscode.window.activeTextEditor?.document.fileName;
+	const lineByLine = require('n-readlines');
+	const liner = new lineByLine(fileName);
+	let out: string = '';
+	let line;
+	while (line = liner.next()) {
+		out = out.concat(line).concat('\n');
+	}
+	console.log(out);
+	panel.webview.postMessage({background: out});
 	panel.webview.postMessage({result: result});
 }
 

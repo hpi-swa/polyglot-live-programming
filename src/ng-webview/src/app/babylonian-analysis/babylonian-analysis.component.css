@@ -1,11 +1,42 @@
 body.vscode-light {
     color: black;
+    margin: 0;
+    padding: 0;
   }
   
   body.vscode-dark {
     color: white;
+    margin: 0;
+    padding: 0;
   }
   
   body.vscode-high-contrast {
     color: red;
+    margin: 0;
+    padding: 0;
   }
+  #container {
+    display: flex;
+    align-self: flex-start;
+    margin: 0;
+    padding: 0;
+ }
+ 
+ #background {
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    opacity: 0.3;
+    white-space: pre-wrap;
+    font-size: 11pt;
+    font-family: Menlo, Monaco, 'Courier New', monospace;
+ }
+ .text {
+  display: inline-block;
+  vertical-align: middle;
+ }
+ .body {
+  margin-top: 20pt !important;
+  padding: 0;
+ }

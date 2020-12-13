@@ -1,5 +1,6 @@
 import { Component, OnChanges, OnInit } from '@angular/core';
 import { AbstractProbe, ProbeType } from '../../../../babylonianAnalysisTypes';
+import { MatSliderChange } from '@angular/material/slider';
 
 @Component({
   selector: 'webview-babylonian-analysis',
@@ -12,9 +13,10 @@ export class BabylonianAnalysisComponent implements OnInit {
   public observedProbes: Array<string> = [];
   public activeOutput: string;
   public lineIndex: any;
-  public result$: Array<AbstractProbe> = [];
+  public result$: Map<Array<number>, AbstractProbe> = new Map();
   public myMap = new Map([]); 
   public overallResult: string;
+  public background: string;
 
 
   constructor() { }
@@ -24,40 +26,77 @@ export class BabylonianAnalysisComponent implements OnInit {
       const message = event.data;
       if (message.result) {
         this.handleResult(message.result);
-        if (this.observedValues[0] && this.observedProbes[0]) {
+        if (this.overallResult) {
           // TODO: Handle Default / Initial Values here
+          console.log("Er ist rein");
+          this.updateTextArea(this.overallResult, "webViewText0");
         }
+      } else if (message.background) {
+        this.background = message.background;
       }
     });
   }
 
-  silderUpdate(event) {
-    const sliderId: string = (event.target as Element).id;
-    if (sliderId === 'rangeSlider0') {
+  updateSliderLabel(value: any) {
+    return value;
+  }
+
+  onSliderChange(event: MatSliderChange) {
+    const sliderId: string = event.source._elementRef.nativeElement.id;
+    const sliderValue: number = event.value;
+    if (sliderId === '0') {
       this.updateTextArea(this.overallResult, "webViewText0");
     } else {
-      const value = event.target.value;
-      let values = this.myMap.get(sliderId);
-      this.updateTextArea(values[value], "webViewText".concat(sliderId.replace('rangeSlider', '')));
+      let values = this.myMap.get('rangeSlider'.concat(sliderId));
+      this.updateTextArea(values[sliderValue-1], "webViewText".concat(sliderId));
     }
-   }
+  }
 
   private updateTextArea(text: string, textAreaId: string) {
     document.getElementById(textAreaId)!.innerHTML = text;
   }
 
   private handleResult(result: Array<AbstractProbe>) {
-
+    let idx = 0;
+    let previousLineIdx: number;
     for (const probe of result) {
-        if (probe.probeType === ProbeType.example) {
-          this.result$.push(probe);
-          this.handleExample(probe);
+      idx ++;
+      console.log("Entrypoint");
+      console.log(previousLineIdx);
+      console.log("Probe.lineIndex");
+      console.log(probe.lineIndex);
+      if (!previousLineIdx) {
+        previousLineIdx = probe.lineIndex;
+      }
+      if (probe.probeType === ProbeType.example) {
+        console.log("NR of br");
+        console.log(probe.lineIndex - previousLineIdx);
+        if (probe.lineIndex === 0) {
+          this.result$.set(new Array<number>(probe.lineIndex - previousLineIdx), probe);
+        } else {
+          this.result$.set(new Array<number>(probe.lineIndex - (previousLineIdx+1)), probe);
         }
-        if (probe.probeType === ProbeType.probe) {
-          this.result$.push(probe);
+        this.handleExample(probe);
+        previousLineIdx = probe.lineIndex;
+      }
+      if (probe.probeType === ProbeType.probe) {
+        if (idx === 2) {
+          console.log("NR of br");
+          console.log(probe.lineIndex - previousLineIdx);
+          this.result$.set(new Array<number>(probe.lineIndex-1), probe);
           this.handleProbe(probe);
+          previousLineIdx = probe.lineIndex;
+        } else {
+          console.log("NR of br");
+          console.log(probe.lineIndex - previousLineIdx);
+          this.result$.set(new Array<number>(probe.lineIndex - (previousLineIdx+1)), probe);
+          this.handleProbe(probe);
+          previousLineIdx = probe.lineIndex;
         }
+
+      }
     }
+    console.log(this,result);
   }
 
   private handleExample(probe: AbstractProbe) {
