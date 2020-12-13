@@ -9,13 +9,8 @@ import { MatSliderChange } from '@angular/material/slider';
 })
 export class BabylonianAnalysisComponent implements OnInit {
   public textArea: string = 'webViewText';
-  public observedValues: Array<string> = [];
-  public observedProbes: Array<string> = [];
-  public activeOutput: string;
-  public lineIndex: any;
-  public result$: Map<Array<number>, AbstractProbe> = new Map();
-  public myMap: Map<string, Array<string>> = new Map([]);
-  public overallResult: string;
+  public resultMap: Map<Array<number>, AbstractProbe> = new Map();
+  public observedValuesMap: Map<string, Array<string>> = new Map([]);
   public background: string;
 
 
@@ -39,12 +34,8 @@ export class BabylonianAnalysisComponent implements OnInit {
   onSliderChange(event: MatSliderChange) {
     const sliderId: string = event.source._elementRef.nativeElement.id;
     const sliderValue: number = event.value;
-    if (sliderId === '0') {
-      this.updateTextArea(this.overallResult, "webViewText0");
-    } else {
-      let values = this.myMap.get('rangeSlider'.concat(sliderId));
-      this.updateTextArea(values[sliderValue - 1], "webViewText".concat(sliderId));
-    }
+    let values = this.observedValuesMap.get('rangeSlider'.concat(sliderId));
+    this.updateTextArea(values[sliderValue - 1], "webViewText".concat(sliderId));
   }
 
   private updateTextArea(text: string, textAreaId: string) {
@@ -89,14 +80,14 @@ export class BabylonianAnalysisComponent implements OnInit {
         previousLineIdx = probe.lineIndex;
       }
       if (probe.lineIndex === 0) {
-        this.result$.set(new Array<number>(probe.lineIndex), probe);
+        this.resultMap.set(new Array<number>(probe.lineIndex), probe);
         previousLineIdx = probe.lineIndex;
       } else if (idx === 2) {
-        this.result$.set(new Array<number>(probe.lineIndex - 1), probe);
+        this.resultMap.set(new Array<number>(probe.lineIndex - 1), probe);
         previousLineIdx = probe.lineIndex;
       } else {
         console.log('Calc Idx:', probe.lineIndex - (previousLineIdx + 1));
-        this.result$.set(new Array<number>(probe.lineIndex - (previousLineIdx + 1)), probe);
+        this.resultMap.set(new Array<number>(probe.lineIndex - (previousLineIdx + 1)), probe);
         previousLineIdx = probe.lineIndex;
       }
 
@@ -106,7 +97,7 @@ export class BabylonianAnalysisComponent implements OnInit {
   }
 
   private buildMapping(probe: AbstractProbe) {
-    this.myMap.set("rangeSlider".concat(probe.lineIndex.toString()), this.getObservedValues(probe));
+    this.observedValuesMap.set("rangeSlider".concat(probe.lineIndex.toString()), this.getObservedValues(probe));
   }
 
   private setInitialvalues(probe: AbstractProbe) {

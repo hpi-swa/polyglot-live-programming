@@ -4,7 +4,7 @@
             {{ background }}
         </div>
         <div id="slidercontainer">
-            <div *ngFor="let r of result$ | keyvalue" class="slidecontainer">
+            <div *ngFor="let r of resultMap | keyvalue" class="slidecontainer">
                 <br *ngFor="let b of r.key">
                 <mat-slider [id]="r.value.lineIndex" [style.marginBottom]="'-1.25em'" [style.marginTop]="'-1em'"
                     thumbLabel [displayWith]="updateSliderLabel" (change)="onSliderChange($event)" [(ngModel)]="value"
