@@ -1,5 +1,5 @@
 import { Component, OnChanges, OnInit } from '@angular/core';
-import { AbstractProbe, ProbeType } from '../../../../babylonianAnalysisTypes';
+import { AbstractProbe, ProbeType, ExampleResult } from '../../../../babylonianAnalysisTypes';
 import { MatSliderChange } from '@angular/material/slider';
 
 @Component({
@@ -14,7 +14,7 @@ export class BabylonianAnalysisComponent implements OnInit {
   public activeOutput: string;
   public lineIndex: any;
   public result$: Map<Array<number>, AbstractProbe> = new Map();
-  public myMap = new Map([]); 
+  public myMap: Map<string, Array<string>> = new Map([]);
   public overallResult: string;
   public background: string;
 
@@ -26,11 +26,6 @@ export class BabylonianAnalysisComponent implements OnInit {
       const message = event.data;
       if (message.result) {
         this.handleResult(message.result);
-        if (this.overallResult) {
-          // TODO: Handle Default / Initial Values here
-          console.log("Er ist rein");
-          this.updateTextArea(this.overallResult, "webViewText0");
-        }
       } else if (message.background) {
         this.background = message.background;
       }
@@ -48,7 +43,7 @@ export class BabylonianAnalysisComponent implements OnInit {
       this.updateTextArea(this.overallResult, "webViewText0");
     } else {
       let values = this.myMap.get('rangeSlider'.concat(sliderId));
-      this.updateTextArea(values[sliderValue-1], "webViewText".concat(sliderId));
+      this.updateTextArea(values[sliderValue - 1], "webViewText".concat(sliderId));
     }
   }
 
@@ -56,81 +51,81 @@ export class BabylonianAnalysisComponent implements OnInit {
     document.getElementById(textAreaId)!.innerHTML = text;
   }
 
+  private getObservedValues(result: AbstractProbe): Array<string> {
+    let r: Array<string> = [];
+    if (result.examples) {
+      if (result.examples.length > 1) {
+        let exampleResult: ExampleResult;
+        for (exampleResult of result.examples) {
+          if (exampleResult.observedValues) {
+            for (const observedValue of exampleResult.observedValues) {
+              if (observedValue.displayString) {
+                r.push(observedValue.displayString);
+              }
+            }
+          }
+        }
+      } else {
+        if (result.examples[0].observedValues) {
+          for (const observedValue of result.examples[0].observedValues) {
+            if (observedValue.displayString) {
+              r.push(observedValue.displayString);
+            }
+          }
+        }
+      }
+    }
+    console.log(r);
+    return r;
+  }
+
   private handleResult(result: Array<AbstractProbe>) {
     let idx = 0;
     let previousLineIdx: number;
     for (const probe of result) {
-      idx ++;
-      console.log("Entrypoint");
-      console.log(previousLineIdx);
-      console.log("Probe.lineIndex");
-      console.log(probe.lineIndex);
+      idx++;
+      console.log('IDX', idx);
       if (!previousLineIdx) {
         previousLineIdx = probe.lineIndex;
       }
-      if (probe.probeType === ProbeType.example) {
-        console.log("NR of br");
-        console.log(probe.lineIndex - previousLineIdx);
-        if (probe.lineIndex === 0) {
-          this.result$.set(new Array<number>(probe.lineIndex - previousLineIdx), probe);
-        } else {
-          this.result$.set(new Array<number>(probe.lineIndex - (previousLineIdx+1)), probe);
-        }
-        this.handleExample(probe);
+      if (probe.lineIndex === 0) {
+        this.result$.set(new Array<number>(probe.lineIndex), probe);
+        previousLineIdx = probe.lineIndex;
+      } else if (idx === 2) {
+        this.result$.set(new Array<number>(probe.lineIndex - 1), probe);
+        previousLineIdx = probe.lineIndex;
+      } else {
+        console.log('Calc Idx:', probe.lineIndex - (previousLineIdx + 1));
+        this.result$.set(new Array<number>(probe.lineIndex - (previousLineIdx + 1)), probe);
         previousLineIdx = probe.lineIndex;
       }
-      if (probe.probeType === ProbeType.probe) {
-        if (idx === 2) {
-          console.log("NR of br");
-          console.log(probe.lineIndex - previousLineIdx);
-          this.result$.set(new Array<number>(probe.lineIndex-1), probe);
-          this.handleProbe(probe);
-          previousLineIdx = probe.lineIndex;
-        } else {
-          console.log("NR of br");
-          console.log(probe.lineIndex - previousLineIdx);
-          this.result$.set(new Array<number>(probe.lineIndex - (previousLineIdx+1)), probe);
-          this.handleProbe(probe);
-          previousLineIdx = probe.lineIndex;
-        }
 
+      this.buildMapping(probe);
+    }
+    result.forEach(res => this.setInitialvalues(res));
+  }
+
+  private buildMapping(probe: AbstractProbe) {
+    this.myMap.set("rangeSlider".concat(probe.lineIndex.toString()), this.getObservedValues(probe));
+  }
+
+  private setInitialvalues(probe: AbstractProbe) {
+    const initialValue: string = this.getObservedValues(probe)[0];
+    const webViewTextId: string = this.textArea.concat(probe.lineIndex.toString());
+    this.waitForElement(webViewTextId, initialValue, function() {
+      document.getElementById(arguments[0])!.innerHTML = arguments[1];
+    });
+  }
+
+  private waitForElement(elementId, initialValue, callBack){
+    window.setTimeout(function(){
+      var element = document.getElementById(elementId);
+      if(element){
+        callBack(elementId, initialValue);
+      }else{
+        this.waitForElement(elementId, callBack);
       }
-    }
-    console.log(this,result);
-  }
-
-  private handleExample(probe: AbstractProbe) {
-    console.log(probe.examples[0].observedValues[0].displayString);
-    this.overallResult = probe.examples[0].observedValues[0].displayString;
-    this.myMap.set("rangeSlider".concat(probe.lineIndex.toString()), probe.examples[0].observedValues[0].displayString);
-  }
-
-  private handleProbe(probe: AbstractProbe) {
-    if (!this.lineIndex) {
-        this.lineIndex = probe.lineIndex;
-    }
-    for (const example of probe.examples) {
-        if (probe.lineIndex === this.lineIndex) {
-            if (example.observedValues) {
-                this.proceedObservedValues(example, this.observedValues);
-                this.myMap.set("rangeSlider".concat(probe.lineIndex.toString()), this.observedValues);
-            }
-        } else {
-          this.proceedObservedValues(example, this.observedProbes);
-          this.myMap.set("rangeSlider".concat(probe.lineIndex.toString()), this.observedProbes);
-        }
-    }
-  }
-
-  private proceedObservedValues(example: any, pushToArray: Array<string>) {
-    if (example.observedValues.length > 1) {
-        let observedValue;
-        for (observedValue of example.observedValues) {
-            pushToArray.push(observedValue.displayString);
-        }
-    } else {
-        pushToArray.push(example.observedValues[0].displayString);
-    }
+    },500);
   }
 }
 
