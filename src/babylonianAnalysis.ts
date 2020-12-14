@@ -123,9 +123,16 @@ function sendResultsToWebView(result: Array<ba.AbstractProbe>, panel: vscode.Web
 	while (line = liner.next()) {
 		out = out.concat(line).concat('\n');
 	}
-	console.log(out);
+	panel.webview.postMessage({editorConfig: getEditorConfig()});
 	panel.webview.postMessage({background: out});
 	panel.webview.postMessage({result: result});
+}
+
+function getEditorConfig(): Array<string> {
+	const editorConfig = vscode.workspace.getConfiguration('editor');
+	const fontFamily: any = editorConfig.get('fontFamily');
+	const fontSize: any = editorConfig.get('fontSize');
+	return new Array<string>(fontFamily, fontSize);
 }
 
 function registerBabylonianAnalysisResultHandler(graalVMExtension: vscode.Extension<GraalVMExtension>) : void {
