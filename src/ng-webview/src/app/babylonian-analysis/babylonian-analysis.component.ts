@@ -66,29 +66,37 @@ export class BabylonianAnalysisComponent implements OnInit {
         }
       }
     }
-    console.log(r);
     return r;
+  }
+
+  private compareLineIndex(a: AbstractProbe, b: AbstractProbe) {
+    if (a.lineIndex < b.lineIndex) {
+      return -1;
+    }
+    if (a.lineIndex > b.lineIndex) {
+      return 1;
+    }
+    return 0;
   }
 
   private handleResult(result: Array<AbstractProbe>) {
     let idx = 0;
-    let previousLineIdx: number;
+    let currentLine: number;
+    result.sort(this.compareLineIndex);
     for (const probe of result) {
       idx++;
-      console.log('IDX', idx);
-      if (!previousLineIdx) {
-        previousLineIdx = probe.lineIndex;
+      if (!currentLine) {
+        currentLine = probe.lineIndex;
       }
       if (probe.lineIndex === 0) {
         this.resultMap.set(new Array<number>(probe.lineIndex), probe);
-        previousLineIdx = probe.lineIndex;
+        currentLine = probe.lineIndex;
       } else if (idx === 2) {
         this.resultMap.set(new Array<number>(probe.lineIndex - 1), probe);
-        previousLineIdx = probe.lineIndex;
+        currentLine = probe.lineIndex;
       } else {
-        console.log('Calc Idx:', probe.lineIndex - (previousLineIdx + 1));
-        this.resultMap.set(new Array<number>(probe.lineIndex - (previousLineIdx + 1)), probe);
-        previousLineIdx = probe.lineIndex;
+        this.resultMap.set(new Array<number>(probe.lineIndex - (currentLine + 1)), probe);
+        currentLine = probe.lineIndex;
       }
 
       this.buildMapping(probe);
@@ -108,7 +116,7 @@ export class BabylonianAnalysisComponent implements OnInit {
     });
   }
 
-  private waitForElement(elementId, initialValue, callBack) {
+  private waitForElement(elementId: string, initialValue: string, callBack: { (): void; (elementId: string, initialValue: string): void; }) {
     window.setTimeout(function () {
       var element = document.getElementById(elementId);
       if (element) {
