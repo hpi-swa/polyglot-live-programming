@@ -33,12 +33,13 @@ const EMOJIS_LENGTH = EMOJIS.length;
 
 const ON_CHANGE_TIMEOUT = 1000;
 
-const FAILURE_RESULT = {timeToRunMillis: 0, error: 'No result'} as ba.BabylonianAnalysisTerminationResult;
+const FAILURE_RESULT = { timeToRunMillis: 0, error: 'No result' } as ba.BabylonianAnalysisTerminationResult;
 const DECORATIONS = new DecorationManager;
 
-let lastBabylonianTimeout: NodeJS.Timeout|null = null;
+let lastBabylonianTimeout: NodeJS.Timeout | null = null;
 let lastBabylonianResult: ba.BabylonianAnalysisResult;
-let lastDidChangeTimeout: NodeJS.Timeout|null = null;
+let lastDidChangeTimeout: NodeJS.Timeout | null = null;
+let panel: vscode.WebviewPanel | null = null;
 
 export function initializeBabylonianAnalysis(context: vscode.ExtensionContext, graalVMExtension: vscode.Extension<GraalVMExtension>, uriHandler: UriHandler) {
 	context.subscriptions.push(vscode.commands.registerCommand('polyglot-live-programming.toggleBabylonianAnalysis', () => {
@@ -49,15 +50,28 @@ export function initializeBabylonianAnalysis(context: vscode.ExtensionContext, g
 	registerBabylonianAnalysisResultHandler(graalVMExtension);
 	uriHandler.onPath('/show-probe-details', showProbeDetails);
 	uriHandler.onPath('/debug-probe', debugProbe);
+
+
+	context.subscriptions.push(vscode.window.onDidChangeTextEditorVisibleRanges(({ textEditor, visibleRanges }) => {
+		if (panel) {
+			panel.webview.postMessage({
+				type: 'scroll',
+				line: visibleRanges,
+				source: textEditor.document
+			});
+		} else {
+			vscode.window.showInformationMessage("Panel is null");
+		}
+	}));
 }
 
 export function getLastBabylonianResult() {
 	return lastBabylonianResult;
 }
 
-function handleBabylonianAnalysisResult(result : ba.BabylonianAnalysisResult, isFinal = false, context?: vscode.ExtensionContext) {
+function handleBabylonianAnalysisResult(result: ba.BabylonianAnalysisResult, isFinal = false, context?: vscode.ExtensionContext) {
 	lastBabylonianResult = result;
-	let resultsArray = []
+	let resultsArray = [];
 	DECORATIONS.clearRedundantDecorations(result);
 	for (const file of result.files) {
 		const editor = vscode.window.visibleTextEditors.filter(editor => editor.document.uri.toString() === file.uri)[0];
@@ -77,45 +91,48 @@ function handleBabylonianAnalysisResult(result : ba.BabylonianAnalysisResult, is
 
 // On activation
 export function activate(context: ExtensionContext, result: Array<ba.AbstractProbe>) {
-  const panel = vscode.window.createWebviewPanel(
-	'babylonianResult', 
-	'Babylonian Result',
-	vscode.ViewColumn.Two, 
-	{enableScripts: true,
-	localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, 'out'), vscode.Uri.joinPath(context.extensionUri, 'out/ng-webview')]}
-  );
+	const panel = vscode.window.createWebviewPanel(
+		'babylonianResult',
+		'Babylonian Result',
+		vscode.ViewColumn.Two,
+		{
+			enableScripts: true,
+			localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, 'out'), vscode.Uri.joinPath(context.extensionUri, 'out/ng-webview')]
+		}
+	);
 
-    const index = join(context.extensionPath, 'out/ng-webview/index.html');
-  
-    const matchLinks = /(href|src)="([^"]*)"/g;
-    const toUri = (_:any, prefix: 'href' | 'src', link: string) => {
-      // For <base href="#" />
-      if (link === '#') {
-        return `${prefix}="${link}"`;
-      }
-      // For scripts & links
-      const path = join(context.extensionPath, 'out/ng-webview', link);
-      const uri = Uri.file(path);
-      return `${prefix}="${panel.webview['asWebviewUri'](uri)}"`;
-    };
+	const index = join(context.extensionPath, 'out', 'ng-webview', 'index.html');
 
-    // Refresh the webview on update from the code
-    const updateWebview = async () => {
-      const html = readFileSync(index, 'utf-8');
-      panel.webview.html = html.replace(matchLinks, toUri);
-    };
+	const matchLinks = /(href|src)="([^"]*)"/g;
+	const toUri = (_: any, prefix: 'href' | 'src', link: string) => {
+		// For <base href="#" />
+		if (link === '#') {
+			return `${prefix}="${link}"`;
+		}
+		// For scripts & links
+		const path = join(context.extensionPath, 'out/ng-webview', link);
+		const uri = Uri.file(path);
+		return `${prefix}="${panel.webview['asWebviewUri'](uri)}"`;
+	};
 
-    if (!environment.production) {
-      watch(index).on('change', updateWebview);
-    }
-    updateWebview();
-    
+	// Refresh the webview on update from the code
+	const updateWebview = async () => {
+		const html = readFileSync(index, 'utf-8');
+		panel.webview.html = html.replace(matchLinks, toUri);
+	};
+
+	if (!environment.production) {
+		watch(index).on('change', updateWebview);
+	}
+	updateWebview();
+
 	context.subscriptions.push(panel);
-	sendResultsToWebView(result, panel);
+	sendResultsToWebView(result, panel, context);
 }
 
-function sendResultsToWebView(result: Array<ba.AbstractProbe>, panel: vscode.WebviewPanel) {
-	const fileName = vscode.window.activeTextEditor?.document.fileName;
+function sendResultsToWebView(result: Array<ba.AbstractProbe>, panelView: vscode.WebviewPanel, context: ExtensionContext,) {
+	const texteditor = vscode.window.activeTextEditor;
+	const fileName = texteditor?.document.fileName;
 	const lineByLine = require('n-readlines');
 	const liner = new lineByLine(fileName);
 	let out: string = '';
@@ -124,11 +141,36 @@ function sendResultsToWebView(result: Array<ba.AbstractProbe>, panel: vscode.Web
 		out = out.concat(line).concat('\n');
 	}
 	console.log(out);
-	panel.webview.postMessage({background: out});
-	panel.webview.postMessage({result: result});
+	panelView.webview.postMessage({ background: out });
+	panelView.webview.postMessage({ result: result });
+
+	panelView.webview.postMessage({
+		type: 'scroll',
+		line: texteditor?.visibleRanges,
+		source: texteditor?.document
+	});
+	panelView.webview.onDidReceiveMessage(e => {
+		onDidScrollWebView(e.line);
+	},
+		undefined,
+		context.subscriptions);
+	panel = panelView;
 }
 
-function registerBabylonianAnalysisResultHandler(graalVMExtension: vscode.Extension<GraalVMExtension>) : void {
+function onDidScrollWebView(line: number) {
+	const editor = vscode.window.visibleTextEditors;
+	if (editor[0]) {
+		const sourceLine = Math.floor(line);
+		const fraction = line - sourceLine;
+		const text = editor[0].document.lineAt(sourceLine).text;
+		const start = Math.floor(fraction * text.length);
+		editor[0].revealRange(
+			new vscode.Range(sourceLine, start, sourceLine + 1, 0),
+			vscode.TextEditorRevealType.AtTop);
+	}
+}
+
+function registerBabylonianAnalysisResultHandler(graalVMExtension: vscode.Extension<GraalVMExtension>): void {
 	graalVMExtension.exports.onClientNotification(BABYLONIAN_ANALYSIS_RESULT_METHOD, handleBabylonianAnalysisResult).then((result: boolean) => {
 		if (!result) {
 			console.error('Failed to register handleBabylonianAnalysisResult notification handler.');
@@ -142,7 +184,7 @@ function requestBabylonianAnalysis(document: vscode.TextDocument, selectedLine?:
 			let disposable = vscode.window.setStatusBarMessage('Performing Babylonian Analysis...');
 			console.log('Requesting Babylonian Analysis...');
 			console.time('Babylonian Analysis execution');
-			const args: Object[] = [ document.uri.toString() ];
+			const args: Object[] = [document.uri.toString()];
 			if (selectedLine && selectedText) {
 				args.push(selectedLine);
 				args.push(selectedText);
@@ -257,10 +299,10 @@ function createHoverMessage(fileResult: ba.BabylonianAnalysisFileResult, probe: 
 			pushProbeWithSingleObservedValue(tableData, fileResult, probe.lineIndex, example);
 		}
 	}
-	return new vscode.MarkdownString(`${table(tableData, {align: 'c'})}`, true);
+	return new vscode.MarkdownString(`${table(tableData, { align: 'c' })}`, true);
 }
 
-function getMaxNumberOfObservedValues(results: ba.ExampleResult[]) : number {
+function getMaxNumberOfObservedValues(results: ba.ExampleResult[]): number {
 	let maxLength = 1;
 	for (const result of results) {
 		maxLength = Math.max(maxLength, result.observedValues.length);
@@ -285,7 +327,7 @@ function pushProbeWithMultipleObservedValues(tableData: string[][], fileResult: 
 	for (let index = 0; index < maxNumberOfObservedValues; index++) {
 		let result;
 		if (index < numberOfObservedValues) {
-			const value =  example.observedValues[index];
+			const value = example.observedValues[index];
 			result = `[${truncate(value.error ? value.error : value.displayString, 20)}](${createProbeInspectionUrl(fileResult, lineIndex, example.exampleName, index)})`;
 		} else {
 			result = '';
@@ -311,11 +353,11 @@ function createDecorationOptions(editor: vscode.TextEditor, isFinalResult: boole
 }
 
 function createProbeInspectionUrl(fileResult: ba.BabylonianAnalysisFileResult, lineIndex: number, exampleName: string, observedValueIndex: number) {
-    return `vscode://hpi-swa.polyglot-live-programming/show-probe-details?fileUri=${encodeURIComponent(fileResult.uri)}&lineIndex=${lineIndex}&exampleName=${encodeURIComponent(exampleName)}&observedValueIndex=${observedValueIndex}`;
+	return `vscode://hpi-swa.polyglot-live-programming/show-probe-details?fileUri=${encodeURIComponent(fileResult.uri)}&lineIndex=${lineIndex}&exampleName=${encodeURIComponent(exampleName)}&observedValueIndex=${observedValueIndex}`;
 }
 
 function createProbeDebugUrl(fileResult: ba.BabylonianAnalysisFileResult, lineIndex: number, expression: string) {
-    return `vscode://hpi-swa.polyglot-live-programming/debug-probe?fileUri=${encodeURIComponent(fileResult.uri)}&languageId=${fileResult.languageId}&lineIndex=${lineIndex}&expression=${encodeURIComponent(expression)}`;
+	return `vscode://hpi-swa.polyglot-live-programming/debug-probe?fileUri=${encodeURIComponent(fileResult.uri)}&languageId=${fileResult.languageId}&lineIndex=${lineIndex}&expression=${encodeURIComponent(expression)}`;
 }
 
 function createDebugSuffix(fileResult: ba.BabylonianAnalysisFileResult, lineIndex: number, example: ba.ExampleResult) {
@@ -357,7 +399,7 @@ function debugProbe(query: URLSearchParams) {
 	}
 	const position = new vscode.Position(lineIndex, 0);
 	const breakpoint = new vscode.SourceBreakpoint(new vscode.Location(fileUri, position));
-	vscode.debug.addBreakpoints([ breakpoint ]);
+	vscode.debug.addBreakpoints([breakpoint]);
 	vscode.debug.startDebugging(undefined, {
 		name: 'Debug Babylonian Probe with GraalVM',
 		type: 'graalvm',
