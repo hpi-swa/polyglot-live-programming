@@ -16,6 +16,7 @@ export class BabylonianAnalysisComponent implements OnInit {
     public resultMap: Map<Array<number>, AbstractProbe> = new Map();
     public observedValuesMap: Map<string, Array<string>> = new Map([]);
     public background: string;
+    public editorConfig: Array<string>;
 
 
     constructor() {
@@ -40,6 +41,15 @@ export class BabylonianAnalysisComponent implements OnInit {
                 this.handleResult(message.result);
             } else if (message.background) {
                 this.background = message.background;
+            } else if (message.editorConfig) {
+                this.editorConfig = message.editorConfig;
+                this.waitForElement('background', this.editorConfig, function () {
+                    document.getElementById(arguments[0]).style.fontFamily = arguments[1][0];
+                    document.getElementById(arguments[0]).style.fontSize = arguments[1][1] + 'px';
+                    Array.from(document.getElementsByClassName('paragraph')).forEach(element => {
+                        ((element) as HTMLElement).style.fontSize = arguments[1][1] + 'px';
+                    });
+                });
             } else if (message.type === 'scroll') {
                 console.log('Line : ' + message.line[0][0].line);
                 const per = ((message.line[0][0].line - 1) / message.source.lineCount) * 100;
@@ -137,16 +147,16 @@ export class BabylonianAnalysisComponent implements OnInit {
         });
     }
 
-    private waitForElement(elementId: string, initialValue: string, callBack: { (): void; (elementId: string, initialValue: string): void; }) {
+    private waitForElement(elementId: string, initialValue: any, callBack) {
         window.setTimeout(function () {
-            var element = document.getElementById(elementId);
-            if (element) {
-                callBack(elementId, initialValue);
-            } else {
-                this.waitForElement(elementId, callBack);
-            }
+          var element = document.getElementById(elementId);
+          if (element) {
+            callBack(elementId, initialValue);
+          } else {
+            this.waitForElement(elementId, callBack);
+          }
         }, 500);
-    }
+      }
 
 
     onUpdateView = (() => {

@@ -143,6 +143,7 @@ function sendResultsToWebView(result: Array<ba.AbstractProbe>, panelView: vscode
 	console.log(out);
 	panelView.webview.postMessage({ background: out });
 	panelView.webview.postMessage({ result: result });
+	panelView.webview.postMessage({editorConfig: getEditorConfig()});
 
 	panelView.webview.postMessage({
 		type: 'scroll',
@@ -170,7 +171,15 @@ function onDidScrollWebView(line: number) {
 	}
 }
 
-function registerBabylonianAnalysisResultHandler(graalVMExtension: vscode.Extension<GraalVMExtension>): void {
+
+function getEditorConfig(): Array<string> {
+	const editorConfig = vscode.workspace.getConfiguration('editor');
+	const fontFamily: any = editorConfig.get('fontFamily');
+	const fontSize: any = editorConfig.get('fontSize');
+	return new Array<string>(fontFamily, fontSize);
+}
+
+function registerBabylonianAnalysisResultHandler(graalVMExtension: vscode.Extension<GraalVMExtension>) : void {
 	graalVMExtension.exports.onClientNotification(BABYLONIAN_ANALYSIS_RESULT_METHOD, handleBabylonianAnalysisResult).then((result: boolean) => {
 		if (!result) {
 			console.error('Failed to register handleBabylonianAnalysisResult notification handler.');
