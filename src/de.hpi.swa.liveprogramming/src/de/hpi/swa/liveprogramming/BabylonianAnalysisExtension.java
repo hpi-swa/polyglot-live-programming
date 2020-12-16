@@ -401,7 +401,7 @@ public class BabylonianAnalysisExtension extends TruffleInstrument implements LS
                             return e.getMessage();
                         }
                     };
-                     BabylonianAnalysisFileResult fileResult = result.getOrCreateFile(toVSCodeURI(source.getURI()), source.getLanguage());
+                    BabylonianAnalysisFileResult fileResult = result.getOrCreateFile(toVSCodeURI(source.getURI()), source.getLanguage());
                     int startLine = section.getStartLine();
                     AbstractProbe probe = fileResult.get(startLine);
                     if (probe == null) {
