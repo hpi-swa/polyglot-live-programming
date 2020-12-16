@@ -40,8 +40,12 @@ let lastBabylonianTimeout: NodeJS.Timeout | null = null;
 let lastBabylonianResult: ba.BabylonianAnalysisResult;
 let lastDidChangeTimeout: NodeJS.Timeout | null = null;
 let panel: vscode.WebviewPanel | null = null;
+let webviewLine: number = 0;
+let webviewIsScrolling: boolean = false;
+
 
 export function initializeBabylonianAnalysis(context: vscode.ExtensionContext, graalVMExtension: vscode.Extension<GraalVMExtension>, uriHandler: UriHandler) {
+	console.log("TEST");
 	context.subscriptions.push(vscode.commands.registerCommand('polyglot-live-programming.toggleBabylonianAnalysis', () => {
 		toggleBabylonianAnalysis(context);
 	}));
@@ -53,12 +57,17 @@ export function initializeBabylonianAnalysis(context: vscode.ExtensionContext, g
 
 
 	context.subscriptions.push(vscode.window.onDidChangeTextEditorVisibleRanges(({ textEditor, visibleRanges }) => {
+		console.log("Range: " + visibleRanges[0].start.line + ", WebviewLine: " + webviewLine);
 		if (panel) {
-			panel.webview.postMessage({
-				type: 'scroll',
-				line: visibleRanges,
-				source: textEditor.document
-			});
+			if (visibleRanges[0].start.line === webviewLine && webviewIsScrolling) {
+				webviewIsScrolling = false;
+			} else if (!webviewIsScrolling) {
+				panel.webview.postMessage({
+					type: 'scroll',
+					line: visibleRanges,
+					source: textEditor.document
+				});
+			}
 		} else {
 			vscode.window.showInformationMessage("Panel is null");
 		}
@@ -143,7 +152,7 @@ function sendResultsToWebView(result: Array<ba.AbstractProbe>, panelView: vscode
 	console.log(out);
 	panelView.webview.postMessage({ background: out });
 	panelView.webview.postMessage({ result: result });
-	panelView.webview.postMessage({editorConfig: getEditorConfig()});
+	panelView.webview.postMessage({ editorConfig: getEditorConfig() });
 
 	panelView.webview.postMessage({
 		type: 'scroll',
@@ -159,15 +168,15 @@ function sendResultsToWebView(result: Array<ba.AbstractProbe>, panelView: vscode
 }
 
 function onDidScrollWebView(line: number) {
+	console.log("TEST");
 	const editor = vscode.window.visibleTextEditors;
 	if (editor[0]) {
-		const sourceLine = Math.floor(line);
-		const fraction = line - sourceLine;
-		const text = editor[0].document.lineAt(sourceLine).text;
-		const start = Math.floor(fraction * text.length);
+		webviewLine = line;
+		console.log("WEBVIEWLINE: " + webviewLine);
+		const text = editor[0].document.lineAt(line).text;
+		webviewIsScrolling = true;
 		editor[0].revealRange(
-			new vscode.Range(sourceLine, start, sourceLine + 1, 0),
-			vscode.TextEditorRevealType.AtTop);
+			new vscode.Range(line, 0, line + 1, 0), vscode.TextEditorRevealType.AtTop);
 	}
 }
 
@@ -179,7 +188,7 @@ function getEditorConfig(): Array<string> {
 	return new Array<string>(fontFamily, fontSize);
 }
 
-function registerBabylonianAnalysisResultHandler(graalVMExtension: vscode.Extension<GraalVMExtension>) : void {
+function registerBabylonianAnalysisResultHandler(graalVMExtension: vscode.Extension<GraalVMExtension>): void {
 	graalVMExtension.exports.onClientNotification(BABYLONIAN_ANALYSIS_RESULT_METHOD, handleBabylonianAnalysisResult).then((result: boolean) => {
 		if (!result) {
 			console.error('Failed to register handleBabylonianAnalysisResult notification handler.');
