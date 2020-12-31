@@ -45,7 +45,6 @@ let webviewIsScrolling: boolean = false;
 
 
 export function initializeBabylonianAnalysis(context: vscode.ExtensionContext, graalVMExtension: vscode.Extension<GraalVMExtension>, uriHandler: UriHandler) {
-	console.log("TEST");
 	context.subscriptions.push(vscode.commands.registerCommand('polyglot-live-programming.toggleBabylonianAnalysis', () => {
 		toggleBabylonianAnalysis(context);
 	}));
@@ -57,7 +56,6 @@ export function initializeBabylonianAnalysis(context: vscode.ExtensionContext, g
 
 
 	context.subscriptions.push(vscode.window.onDidChangeTextEditorVisibleRanges(({ textEditor, visibleRanges }) => {
-		console.log("Range: " + visibleRanges[0].start.line + ", WebviewLine: " + webviewLine);
 		if (panel) {
 			if (visibleRanges[0].start.line === webviewLine && webviewIsScrolling) {
 				webviewIsScrolling = false;
@@ -168,11 +166,9 @@ function sendResultsToWebView(result: Array<ba.AbstractProbe>, panelView: vscode
 }
 
 function onDidScrollWebView(line: number) {
-	console.log("TEST");
 	const editor = vscode.window.visibleTextEditors;
 	if (editor[0]) {
 		webviewLine = line;
-		console.log("WEBVIEWLINE: " + webviewLine);
 		const text = editor[0].document.lineAt(line).text;
 		webviewIsScrolling = true;
 		editor[0].revealRange(

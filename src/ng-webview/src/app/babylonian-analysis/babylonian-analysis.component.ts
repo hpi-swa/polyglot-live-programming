@@ -27,13 +27,10 @@ export class BabylonianAnalysisComponent implements OnInit {
     ngAfterViewInit() {
         window.addEventListener('scroll', (event) => {
             const floatLine = this.getEditorLineNumber();
-            console.log("Current Float Line: " + floatLine + ", EditorLine: " + this.editorLine);
             if (((this.editorLine  - 0.7) <= floatLine && (this.editorLine  + 0.7) >= floatLine ) && this.editorIsScrolling) {
-                console.log(this.editorIsScrolling);
                 this.editorIsScrolling = false;
             } else if (!this.editorIsScrolling) {
                 const line = Math.ceil(floatLine);
-                console.log("POST MESSAGE: " + line);
                 vscode.postMessage({ line });
             }
         }, true);
@@ -58,7 +55,6 @@ export class BabylonianAnalysisComponent implements OnInit {
             } else if (message.type === 'scroll') {
                 this.editorLine = message.line[0][0].line;
                 this.editorIsScrolling = true;
-                console.log('Recevie Line : ' + this.editorLine);
                 ((message.line[0][0].line - 1) / message.source.lineCount) * 100;
                 const per = (this.editorLine / this.countLines()) * 100;
                 this.onUpdateView(per);
