@@ -10,7 +10,7 @@ import { AbstractProbe } from '../../../../babylonianAnalysisTypes';
 })
 export class CommunicationService {
 
-  private abstractProbes: BehaviorSubject<Array<AbstractProbe>>;
+  abstractProbes: BehaviorSubject<Array<AbstractProbe>>;
   background: BehaviorSubject<string>;
   editorLine: BehaviorSubject<number>;
   private editorConfig: BehaviorSubject<Array<string>>;

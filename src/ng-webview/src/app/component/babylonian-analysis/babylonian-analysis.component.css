@@ -17,20 +17,19 @@ body.vscode-high-contrast {
 }
 
 #container {
-  display   : flex;
-  align-self: flex-start;
   margin    : 0;
   padding   : 0;
 }
 
-#background {
+.background {
   top        : 0;
-  left       : 0;
+  margin-left : 15px;
   bottom     : 0;
   right      : 0;
   opacity    : 0.3;
   white-space: pre-wrap;
   font-size: 12px;
+  float: left;
 }
 
 .text {
@@ -45,4 +44,13 @@ body.vscode-high-contrast {
 .paragraph {
   margin-block-start: -0.5em;
   margin-block-end: 0;
+}
+
+.row {
+  width: 100%;
+  float: left;
+}
+
+.slidercontainer {
+  float: right;
 }

@@ -7,9 +7,10 @@ import { BabylonianAnalysisComponent } from './component/babylonian-analysis/bab
 import { MatSliderModule } from '@angular/material/slider';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations'; 
 import { CommunicationService } from './service/communication.service';
+import { ExampleComponent } from './component/example/example.component';
 
 @NgModule({
-  declarations: [AppComponent, BabylonianAnalysisComponent],
+  declarations: [AppComponent, BabylonianAnalysisComponent, ExampleComponent],
   imports: [
     BrowserModule,
     RouterModule.forRoot([], { useHash: true }),

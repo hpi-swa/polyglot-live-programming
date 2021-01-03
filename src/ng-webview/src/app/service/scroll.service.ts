@@ -15,7 +15,7 @@ export class ScrollService {
 
   constructor(private eventManager: EventManager, private communicationService: CommunicationService) {
     this.eventManager.addGlobalEventListener('window', 'scroll', this.onScroll.bind(this));
-    this.communicationService.editorLine.asObservable().subscribe((value) => this.onEditorScroll(value));
+    this.communicationService.editorLine.subscribe((value) => this.onEditorScroll(value));
     this.communicationService.background.subscribe((value) => this.background = value);
   }
 
@@ -33,12 +33,8 @@ export class ScrollService {
     this.editorLine = num;
     this.editorIsScrolling = true;
     const per = (num / this.countLines()) * 100;
-    this.onUpdateView(per);
-  }
-
-  private onUpdateView(line: number) {
-    if (!isNaN(line)) {
-      const nextPosition = document.body.scrollHeight * (line / 100);
+    if (!isNaN(per)) {
+      const nextPosition = document.body.scrollHeight * (per / 100);
       window.scroll(0, Math.ceil(nextPosition));
     }
   }
@@ -50,7 +46,7 @@ export class ScrollService {
   }
 
   private countLines() {
-    var matches = this.background.match(/[^\n]*\n[^\n]*/gi);
+    var matches = this.background.match(/[^\n]*\n[^\n]*?/g);
     if (matches) {
       return matches.length;
     }
