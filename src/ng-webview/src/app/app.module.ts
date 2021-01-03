@@ -3,9 +3,10 @@ import { NgModule } from '@angular/core';
 
 import { AppComponent } from './app.component';
 import { RouterModule } from '@angular/router';
-import { BabylonianAnalysisComponent } from './babylonian-analysis/babylonian-analysis.component';
+import { BabylonianAnalysisComponent } from './component/babylonian-analysis/babylonian-analysis.component';
 import { MatSliderModule } from '@angular/material/slider';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations'; 
+import { CommunicationService } from './service/communication.service';
 
 @NgModule({
   declarations: [AppComponent, BabylonianAnalysisComponent],
@@ -15,7 +16,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     MatSliderModule,
     BrowserAnimationsModule
   ],
-  providers: [],
+  providers: [CommunicationService],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

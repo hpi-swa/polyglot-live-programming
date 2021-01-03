@@ -1,9 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { AbstractProbe, ExampleResult } from '../../../../babylonianAnalysisTypes';
+import { AbstractProbe, ExampleResult } from '../../../../../babylonianAnalysisTypes';
 import { MatSliderChange } from '@angular/material/slider';
-import { vscode } from 'src/constant';
 
-import * as _ from 'lodash';
+import { CommunicationService } from 'src/app/service/communication.service';
 
 
 @Component({
@@ -11,54 +10,28 @@ import * as _ from 'lodash';
     templateUrl: './babylonian-analysis.component.html',
     styleUrls: ['./babylonian-analysis.component.css']
 })
-export class BabylonianAnalysisComponent implements OnInit {
+export class BabylonianAnalysisComponent implements OnInit  {
     public textArea: string = 'webViewText';
     public resultMap: Map<Array<number>, AbstractProbe> = new Map();
     public observedValuesMap: Map<string, Array<string>> = new Map([]);
     public background: string;
     public editorConfig: Array<string>;
-    public editorLine: number = 0;
-    public editorIsScrolling: boolean = false;
 
 
-    constructor() {
-    }
-
-    ngAfterViewInit() {
-        window.addEventListener('scroll', (event) => {
-            const floatLine = this.getEditorLineNumber();
-            if (((this.editorLine  - 0.7) <= floatLine && (this.editorLine  + 0.7) >= floatLine ) && this.editorIsScrolling) {
-                this.editorIsScrolling = false;
-            } else if (!this.editorIsScrolling) {
-                const line = Math.ceil(floatLine);
-                vscode.postMessage({ line });
-            }
-        }, true);
-    }
+    constructor(private communicationService: CommunicationService) { }
 
     ngOnInit(): void {
-        window.addEventListener('message', event => {
-            const message = event.data;
-            if (message.result) {
-                this.handleResult(message.result);
-            } else if (message.background) {
-                this.background = message.background;
-            } else if (message.editorConfig) {
-                this.editorConfig = message.editorConfig;
-                this.waitForElement('background', this.editorConfig, function () {
-                    document.getElementById(arguments[0]).style.fontFamily = arguments[1][0];
-                    document.getElementById(arguments[0]).style.fontSize = arguments[1][1] + 'px';
-                    Array.from(document.getElementsByClassName('paragraph')).forEach(element => {
-                        ((element) as HTMLElement).style.fontSize = arguments[1][1] + 'px';
-                    });
+        this.communicationService.getBackground().subscribe((value) => this.background = value);
+        this.communicationService.getAbstractProbes().subscribe(this.handleResult.bind(this));
+        this.communicationService.getEditorConfig().subscribe((value) => {
+            this.editorConfig = value;
+            this.waitForElement('background', this.editorConfig, function () {
+                document.getElementById(arguments[0]).style.fontFamily = arguments[1][0];
+                document.getElementById(arguments[0]).style.fontSize = arguments[1][1] + 'px';
+                Array.from(document.getElementsByClassName('paragraph')).forEach(element => {
+                    ((element) as HTMLElement).style.fontSize = arguments[1][1] + 'px';
                 });
-            } else if (message.type === 'scroll') {
-                this.editorLine = message.line[0][0].line;
-                this.editorIsScrolling = true;
-                ((message.line[0][0].line - 1) / message.source.lineCount) * 100;
-                const per = (this.editorLine / this.countLines()) * 100;
-                this.onUpdateView(per);
-            }
+            });
         });
     }
 
@@ -160,26 +133,6 @@ export class BabylonianAnalysisComponent implements OnInit {
                 this.waitForElement(elementId, callBack);
             }
         }, 500);
-    }
-
-
-    private onUpdateView(line: number) {
-        if (!isNaN(line)) {
-            const nextPosition = document.body.scrollHeight * (line / 100);
-            window.scroll(0, Math.ceil(nextPosition));
-        }
-    }
-
-
-
-    private getEditorLineNumber() {
-        const posPercentage = (document.scrollingElement.scrollTop / document.body.scrollHeight) * 100;
-        const total = this.countLines();
-        return (posPercentage / 100) * total;
-    }
-
-    private countLines() {
-        return this.background.match(/[^\n]*\n[^\n]*/gi).length;
     }
 }
 
