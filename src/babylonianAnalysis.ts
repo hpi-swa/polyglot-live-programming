@@ -61,9 +61,7 @@ export function initializeBabylonianAnalysis(context: vscode.ExtensionContext, g
 				webviewIsScrolling = false;
 			} else if (!webviewIsScrolling) {
 				panel.webview.postMessage({
-					type: 'scroll',
-					line: visibleRanges,
-					source: textEditor.document
+					scroll: visibleRanges
 				});
 			}
 		} else {
@@ -89,16 +87,18 @@ function handleBabylonianAnalysisResult(result: ba.BabylonianAnalysisResult, isF
 				editor.setDecorations(decorationType, [decorationOptions]);
 				resultsArray.push(probe);
 			}
-			if (context) {
-				activate(context, resultsArray);
+			if (context && !panel) {
+				buildPanel(context);
+			}
+			if (panel) {
+				sendResultsToWebView(resultsArray, panel);
 			}
 		}
 	}
 }
 
-// On activation
-export function activate(context: ExtensionContext, result: Array<ba.AbstractProbe>) {
-	const panel = vscode.window.createWebviewPanel(
+export function buildPanel(context: ExtensionContext) {
+	const panelView = vscode.window.createWebviewPanel(
 		'babylonianResult',
 		'Babylonian Result',
 		vscode.ViewColumn.Two,
@@ -107,7 +107,6 @@ export function activate(context: ExtensionContext, result: Array<ba.AbstractPro
 			localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, 'out'), vscode.Uri.joinPath(context.extensionUri, 'out/ng-webview')]
 		}
 	);
-
 	const index = join(context.extensionPath, 'out', 'ng-webview', 'index.html');
 
 	const matchLinks = /(href|src)="([^"]*)"/g;
@@ -119,13 +118,13 @@ export function activate(context: ExtensionContext, result: Array<ba.AbstractPro
 		// For scripts & links
 		const path = join(context.extensionPath, 'out/ng-webview', link);
 		const uri = Uri.file(path);
-		return `${prefix}="${panel.webview['asWebviewUri'](uri)}"`;
+		return `${prefix}="${panelView.webview['asWebviewUri'](uri)}"`;
 	};
 
 	// Refresh the webview on update from the code
 	const updateWebview = async () => {
 		const html = readFileSync(index, 'utf-8');
-		panel.webview.html = html.replace(matchLinks, toUri);
+		panelView.webview.html = html.replace(matchLinks, toUri);
 	};
 
 	if (!environment.production) {
@@ -133,36 +132,40 @@ export function activate(context: ExtensionContext, result: Array<ba.AbstractPro
 	}
 	updateWebview();
 
-	context.subscriptions.push(panel);
-	sendResultsToWebView(result, panel, context);
+	context.subscriptions.push(panelView);
+
+	panelView.webview.onDidReceiveMessage(e => {
+		if (e.scroll) {
+			onDidScrollWebView(e.scroll);
+		}
+		if (e.editLine) {
+			onDidWebviewInputChange(e.editLine, e.line);
+		}
+	}, undefined, context.subscriptions);
+	panelView.webview.postMessage({
+		editorConfig: getEditorConfig()
+	});
+	panel = panelView;
 }
 
-function sendResultsToWebView(result: Array<ba.AbstractProbe>, panelView: vscode.WebviewPanel, context: ExtensionContext,) {
-	const texteditor = vscode.window.activeTextEditor;
-	const fileName = texteditor?.document.fileName;
-	const lineByLine = require('n-readlines');
-	const liner = new lineByLine(fileName);
-	let out: string = '';
-	let line;
-	while (line = liner.next()) {
-		out = out.concat(line).concat('\n');
+function sendResultsToWebView(result: Array<ba.AbstractProbe>, panelView: vscode.WebviewPanel) {
+	const editor = vscode.window.visibleTextEditors;
+	if (editor[0]) {
+		var texteditor = editor[0];
+		const fileName = texteditor.document.fileName;
+		const lineByLine = require('n-readlines');
+		const liner = new lineByLine(fileName);
+		let out: string = '';
+		let line;
+		while (line = liner.next()) {
+			out = out.concat(line).concat('\n');
+		}
+		panelView.webview.postMessage({
+			background: out,
+			result: result,
+			scroll: texteditor.visibleRanges
+		});
 	}
-	console.log(out);
-	panelView.webview.postMessage({ background: out });
-	panelView.webview.postMessage({ result: result });
-	panelView.webview.postMessage({ editorConfig: getEditorConfig() });
-
-	panelView.webview.postMessage({
-		type: 'scroll',
-		line: texteditor?.visibleRanges,
-		source: texteditor?.document
-	});
-	panelView.webview.onDidReceiveMessage(e => {
-		onDidScrollWebView(e.line);
-	},
-		undefined,
-		context.subscriptions);
-	panel = panelView;
 }
 
 function onDidScrollWebView(line: number) {
@@ -173,6 +176,18 @@ function onDidScrollWebView(line: number) {
 		webviewIsScrolling = true;
 		editor[0].revealRange(
 			new vscode.Range(line, 0, line + 1, 0), vscode.TextEditorRevealType.AtTop);
+	}
+}
+
+function onDidWebviewInputChange(editLine: string, line: number) {
+	const editors = vscode.window.visibleTextEditors;
+	if (editors[0]) {
+		editors[0].edit(editBuilder => {
+			var firstLine = editors[0].document.lineAt(line - 1);
+			editBuilder.replace(new vscode.Range(firstLine.range.start, firstLine.range.end), editLine);
+		}).then(x => {
+			editors[0].document.save();
+		});
 	}
 }
 

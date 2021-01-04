@@ -1,3 +1,8 @@
-<div class="background">
-    <span class="paragraph">Example {{ babylon.text }}</span>
+<div class="background quantity">
+    <span class="paragraph">
+        &#x3C; Example 
+            :name=<input type="text" value="{{ name }}" (keyup)="onKey($event)"  maxlength="8" size="8">
+           n=<input type="number" value="{{ n }}" (change)="onChange($event)" min="1">
+        / &#x3E;
+    </span>
 </div>

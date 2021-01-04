@@ -31,14 +31,17 @@ export class CommunicationService {
 
   private onMessage(event) {
     const message = event.data;
+    if (message.background) {
+      this.background.next(message.background);
+    } 
     if (message.result) {
       this.abstractProbes.next(message.result);
-    } else if (message.background) {
-      this.background.next(message.background);
-    } else if (message.editorConfig) {
+    }
+    if (message.editorConfig) {
       this.editorConfig.next(message.editorConfig);
-    } else if (message.type === 'scroll') {
-      var lineNum = Number(message.line[0][0].line);
+    } 
+    if (message.scroll) {
+      var lineNum = Number(message.scroll[0][0].line);
       this.editorLine.next(lineNum);
     }
   }

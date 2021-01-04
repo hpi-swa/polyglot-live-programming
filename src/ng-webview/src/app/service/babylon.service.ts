@@ -82,4 +82,11 @@ export class BabylonService {
   getResultMap() : Observable<Array<BabylonRow>> {
     return this.resultMap.asObservable();
   }
+
+  public updateResultMap(linNum: number, text: string) {
+    this.communicationService.postMessage({ 
+      editLine: text,
+      line: linNum
+    });
+  }
 }

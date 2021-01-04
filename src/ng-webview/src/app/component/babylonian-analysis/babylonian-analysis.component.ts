@@ -22,7 +22,7 @@ export class BabylonianAnalysisComponent implements OnInit  {
         this.babylonService.getResultMap().subscribe((value) => this.processResult(value));
         this.communicationService.getEditorConfig().subscribe((value) => {
             this.editorConfig = value;
-            this.waitForElement('background', this.editorConfig, function () {
+            this.waitForElement('container', this.editorConfig, function () {
                 document.getElementById(arguments[0]).style.fontFamily = arguments[1][0];
                 document.getElementById(arguments[0]).style.fontSize = arguments[1][1] + 'px';
                 Array.from(document.getElementsByClassName('paragraph')).forEach(element => {

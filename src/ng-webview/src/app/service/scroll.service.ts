@@ -25,7 +25,7 @@ export class ScrollService {
       this.editorIsScrolling = false;
     } else if (!this.editorIsScrolling) {
       const line = Math.ceil(floatLine);
-      this.communicationService.postMessage({ line });
+      this.communicationService.postMessage({ scroll: line });
     }
   }
 

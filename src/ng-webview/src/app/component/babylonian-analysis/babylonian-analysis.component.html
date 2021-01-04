@@ -6,10 +6,10 @@
             <span *ngIf="!r.probeType || r.probeType.valueOf() !== 'EXAMPLE'" class="paragraph">{{ r.text }}</span>
         </div>
         <div class="slidercontainer" *ngIf="r.probeType">
-                <mat-slider [id]="r.line" [style.marginBottom]="'-1.25em'" [style.marginTop]="'-1em'" thumbLabel
-                    [displayWith]="updateSliderLabel" (input)="onSliderChange($event)" [(ngModel)]="value"
-                    tickInterval="0" min="1" max="{{ r.observedValues.length }}"></mat-slider>
-                <span class="text" id="webViewText{{ r.line }}"></span>
+            <mat-slider [id]="r.line" [style.marginBottom]="'-1.25em'" [style.marginTop]="'-1em'" thumbLabel
+                [displayWith]="updateSliderLabel" (input)="onSliderChange($event)" [(ngModel)]="value" tickInterval="0"
+                min="1" max="{{ r.observedValues.length }}"></mat-slider>
+            <span class="text" id="webViewText{{ r.line }}"></span>
         </div>
     </div>
 </div>
