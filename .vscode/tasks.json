@@ -22,6 +22,59 @@
 			"label": "Build",
 			"type": "npm",
 			"script": "ngBuild"
+		},
+		{
+			"label": "WatchMode",
+			"type": "npm",
+			"script": "watch",
+			"problemMatcher": "$tsc-watch",
+			"isBackground": true,
+			"presentation": {
+				"reveal": "never"
+			},
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"dependsOn": "BuildWatch",
+		},
+		{
+			"label": "BuildWatch",
+			"type": "npm",
+			"script": "ngBuildWatch",
+			"group": "build",
+			"isBackground": true,
+			"presentation": {
+				"focus": true,
+				"panel": "dedicated"
+			},
+			"problemMatcher": {
+				"owner": "typescript",
+				"source": "ts",
+				"applyTo": "allDocuments",
+				"fileLocation": [
+					"relative",
+					"${cwd}"
+				],
+				"pattern": {
+					"regexp": "^\\s*(?:ERROR in )?([^\\s].*)[\\(:](\\d+)[,:](\\d+)(?:\\):\\s+|\\s+-\\s+)(error|warning|info)\\s+TS(\\d+)\\s*:\\s*(.*)$",
+					"file": 1,
+					"line": 2,
+					"column": 3,
+					"severity": 4,
+					"code": 5,
+					"message": 6
+				},
+				"background": {
+					"activeOnStart": true,
+					"beginsPattern": {
+						"regexp": ".*Generating browser application bundles.*"
+					},
+					"endsPattern": {
+						"regexp": ".*Build at.*"
+					}
+				}
+			}
 		}
 	]
 }
