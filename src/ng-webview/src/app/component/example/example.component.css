@@ -5,3 +5,39 @@ input[type=number]::-webkit-inner-spin-button {
   input[type=number] {
     width: 3em;
   }
+
+  .example {
+    opacity: 1 !important;
+  }
+
+::ng-deep .mat-form-field-appearance-legacy .mat-form-field-wrapper {
+    padding: 0;
+    padding-left: 3px;
+
+}
+
+::ng-deep .mat-form-field-wrapper {
+  padding-bottom: 0 !important;
+}
+
+::ng-deep .mat-form-field-appearance-legacy .mat-form-field-infix {
+  padding: 0;
+  border: 0;
+ }
+ 
+ ::ng-deep  .mat-form-field-infix {
+  padding: 0;
+  border: 0;
+ }
+
+ .icon-button {
+  background-color: transparent;
+  border: 0;
+ }
+
+ .mat-icon {
+  vertical-align: middle;
+}
+  
+
+  

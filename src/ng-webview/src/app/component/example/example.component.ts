@@ -1,6 +1,6 @@
 import { Input } from '@angular/core';
 import { Component, OnInit } from '@angular/core';
-import { BabylonRow } from 'src/app/model/babylon-row.model';
+import {  BabylonRow } from 'src/app/model/babylon-row.model';
 import { BabylonService } from 'src/app/service/babylon.service';
 
 @Component({
@@ -12,44 +12,65 @@ export class ExampleComponent implements OnInit {
 
   @Input() babylon: BabylonRow;
 
-  name: string;
-  n: string;
+  names: Array<string>;
+  inputs: Map<string, string>;
+  selected: string;
 
 
   constructor(private babylonService: BabylonService) { }
 
   ngOnInit(): void {
-    if (this.babylon.examples[0].exampleName) {
-      this.name = this.babylon.examples[0].exampleName;
+    this.names = new Array<string>();
+    for(var i = 0; i < this.babylon.examples.length; i++) {
+      this.names.push(this.babylon.examples[i].exampleName);
     }
-    this.n = this.getInitalN();
+    this.selected = this.names[0];
+    console.log(this.selected);
+    this.inputs = this.getInitalValues();
   }
 
   private toText() {
     var exampleText = '// <Example';
-    if (this.name) {
-      exampleText = exampleText.concat('  :name="' + this.name + '" ');
+    this.inputs.forEach((value, key) => {
+      exampleText = exampleText.concat('  ' + key + '="' + value + '" '); 
+    });
+    if (this.names) {
+      exampleText = exampleText.concat('  :name="' + this.names[0] + '" ');
     }
-    return exampleText.concat(' n="' + this.n + '" />');
+    return exampleText.concat(' />');
   }
 
   onChange(event: any) {
-    this.n = event.target.value;
-    this.updateResults();
+    console.log(event);
+    event.target.value;
+    //this.updateResults();
   }
 
   onKey(event: any) {
-    this.name = event.target.value;
-    this.updateResults();
+    console.log(event);
+ //   this.name = event.target.value;
+    //this.updateResults();
   }
 
   updateResults() {
     this.babylonService.updateResultMap(this.babylon.line, this.toText());
   }
 
-  private getInitalN() {
-    const startIndex = this.babylon.text.lastIndexOf('n="') + 3;
-    const endIndex = this.babylon.text.indexOf('"', startIndex + 1);
-    return this.babylon.text.substring(startIndex, endIndex);
+  private getInitalValues() {
+    var inputs = new Map<string, string>();
+    const matches = this.babylon.text.match(/(:)*[^\s]+="[^\s]+"/g);
+    console.log(matches);
+    matches.forEach((match, index) => {
+      const key = match.match(/(:)*[^\s]+=/g)[0].replace('=', '');
+      const value = match.match(/[^="\s]+"/g)[0].replace('"', '');
+      if(key !== ':name') {
+        inputs.set(key, value);
+      }
+    });
+    return inputs;
+  }
+
+  onSelectionChange(event: any) {
+    console.log(this.selected);
   }
 }
