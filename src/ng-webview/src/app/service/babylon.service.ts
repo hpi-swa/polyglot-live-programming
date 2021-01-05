@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { BehaviorSubject } from 'rxjs';
-import { AbstractProbe, ExampleResult } from '../../../../babylonianAnalysisTypes';
+import { AbstractProbe, ExampleResult, ProbeType } from '../../../../babylonianAnalysisTypes';
 import { BabylonRow } from '../model/babylon-row.model';
 import { CommunicationService } from './communication.service';
 
@@ -24,6 +24,7 @@ export class BabylonService {
     var resultList = new Array<BabylonRow>();
     if (backgroundRows) {
       var resultList = new Array<BabylonRow>(backgroundRows.length);
+      var example: BabylonRow;
       for (var i = 0; i <= backgroundRows.length; i++) {
         var row = new BabylonRow();
         var filtered = result.filter(probe => probe.lineIndex === i);
@@ -34,6 +35,19 @@ export class BabylonService {
           row.observedValues = this.getObservedValues(filtered[0]);
         }
         row.text = backgroundRows[i];
+        if (row.probeType && row.probeType === ProbeType.example) {
+          if (example) {
+            example.examples.push(row.examples[0]);
+            example.text = example.text.concat(row.text);
+          } else {
+            example = row;
+          }
+          continue;
+        }
+        if (example) {
+          resultList[example.line - 1] = example;
+        }
+        example = null;
         resultList[i] = row;
       }
     }
@@ -79,12 +93,12 @@ export class BabylonService {
     return r;
   }
 
-  getResultMap() : Observable<Array<BabylonRow>> {
+  getResultMap(): Observable<Array<BabylonRow>> {
     return this.resultMap.asObservable();
   }
 
   public updateResultMap(linNum: number, text: string) {
-    this.communicationService.postMessage({ 
+    this.communicationService.postMessage({
       editLine: text,
       line: linNum
     });

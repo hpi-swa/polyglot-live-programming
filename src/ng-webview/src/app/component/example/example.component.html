@@ -10,10 +10,10 @@
             </mat-form-field>
             <span *ngFor="let input of inputs  | keyvalue" >
                 <b> {{ input.key }}= </b>
-                <input *ngIf="!+input.value" type="text" value="{{ input.value }}" (keyup)="onKey($event)"  maxlength="8" size="8">
-                <input *ngIf="+input.value" type="number" value="{{ input.value }}" (change)="onChange($event)">
+                <input *ngIf="!+input.value" name="{{ input.key }}" type="text" value="{{ input.value }}" (keyup)="onKey($event)"  maxlength="8" size="8">
+                <input *ngIf="+input.value" name="{{ input.key }}"  type="number" value="{{ input.value }}" (change)="onChange($event)">
             </span>
-            <button mat-mini-fab color="warn" aria-label="Submit" class="icon-button">
+            <button mat-mini-fab color="warn" aria-label="Submit" class="icon-button"  (click)="onSubmit()">
                 <mat-icon class="mat-icon">open_in_new</mat-icon>
             </button>
         / &#x3E;
