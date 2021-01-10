@@ -103,4 +103,15 @@ export class BabylonService {
       line: linNum
     });
   }
+
+  public waitForElement(elementId: string, initialValue: any, callBack) {
+    window.setTimeout(() => {
+        var element = document.getElementById(elementId);
+        if (element) {
+            callBack(elementId, initialValue);
+        } else {
+            this.waitForElement(elementId, initialValue, callBack);
+        }
+    }, 500);
+}
 }

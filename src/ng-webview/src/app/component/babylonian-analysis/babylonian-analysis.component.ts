@@ -22,7 +22,7 @@ export class BabylonianAnalysisComponent implements OnInit  {
         this.babylonService.getResultMap().subscribe((value) => this.processResult(value));
         this.communicationService.getEditorConfig().subscribe((value) => {
             this.editorConfig = value;
-            this.waitForElement('container', this.editorConfig, function () {
+            this.babylonService.waitForElement('container', this.editorConfig, function () {
                 document.getElementById(arguments[0]).style.fontFamily = arguments[1][0];
                 document.getElementById(arguments[0]).style.fontSize = arguments[1][1] + 'px';
                 Array.from(document.getElementsByClassName('paragraph')).forEach(element => {
@@ -30,23 +30,6 @@ export class BabylonianAnalysisComponent implements OnInit  {
                 });
             });
         });
-    }
-
-    updateSliderLabel(value: any) {
-        return value;
-    }
-
-    onSliderChange(event: MatSliderChange) {
-        const sliderId: string = event.source._elementRef.nativeElement.id;
-        const sliderValue: number = event.value;
-        let values = this.result.filter((e) => e.line === Number(sliderId));
-        if(values && values.length > 0 && values[0].observedValues && values[0].observedValues.length > 0) {
-            this.updateTextArea(values[0].observedValues[sliderValue - 1], "webViewText".concat(sliderId));
-        }
-    }
-
-    private updateTextArea(text: string, textAreaId: string) {
-        document.getElementById(textAreaId)!.innerHTML = text;
     }
 
     private processResult(result: Array<BabylonRow>) {
@@ -57,20 +40,9 @@ export class BabylonianAnalysisComponent implements OnInit  {
     private setInitialvalues(probe: BabylonRow) {
         const initialValue: string = probe.observedValues[0];
         const webViewTextId: string = this.textArea.concat(probe.line.toString());
-        this.waitForElement(webViewTextId, initialValue, function () {
+        this.babylonService.waitForElement(webViewTextId, initialValue, function () {
             document.getElementById(arguments[0])!.innerHTML = arguments[1];
         });
-    }
-
-    private waitForElement(elementId: string, initialValue: any, callBack) {
-        window.setTimeout(function () {
-            var element = document.getElementById(elementId);
-            if (element) {
-                callBack(elementId, initialValue);
-            } else {
-                this.waitForElement(elementId, callBack);
-            }
-        }, 500);
     }
 }
 
