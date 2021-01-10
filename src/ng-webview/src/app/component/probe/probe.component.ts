@@ -37,20 +37,6 @@ export class ProbeComponent implements OnInit {
     this.leftMargin = this.calculateLeftMargin().concat('px');
   }
 
-  private formatText() {
-    let spaces = '';
-    let txt = '';
-    Array.from(this.babylon.text).forEach(c => {
-      if (c === ' ') {
-        spaces = spaces.concat(' ');
-      }
-    });
-    txt = this.babylon.text.trim();
-    this.text = txt;
-    this.babylon.text = txt;
-    this.leadingWhitespaces = spaces;
-  }
-
   public updateSliderLabel(value: any) {
     return value;
   }
@@ -80,6 +66,20 @@ export class ProbeComponent implements OnInit {
         this.showSlider = false;
       }
     }, 1000);
+  }
+
+  private formatText() {
+    let spaces = '';
+    let txt = '';
+    Array.from(this.babylon.text).forEach(c => {
+      if (c === ' ') {
+        spaces = spaces.concat(' ');
+      }
+    });
+    txt = this.babylon.text.trim();
+    this.text = txt;
+    this.babylon.text = txt;
+    this.leadingWhitespaces = spaces;
   }
 
   private restoreSlider() {
