@@ -1,0 +1,13 @@
+<div id="probe_container" (mouseover)="displaySlider()" (mouseout)="hideSlider()">
+    <div *ngIf="showSlider===true" class="slidercontainer" id="slidercontainer{{ babylon.line }}">
+        <mat-slider [ngStyle]="{'margin-left': leftMargin}" #matSlider class="max"
+            *ngIf="babylon.observedValues.length > 1" [id]="babylon.line" [style.marginBottom]="'-1.25em'"
+            [style.marginTop]="'-0.5em'" thumbLabel [displayWith]="updateSliderLabel" (input)="onSliderChange($event)"
+            tickInterval="0" min="1" max="{{ babylon.observedValues.length }}">
+        </mat-slider>
+        <span class="text" id="sliderTextField{{ babylon.line }}"></span>
+    </div>
+    <span id="background{{ babylon.line }}" *ngIf="showSlider===false" class="border-highlight background paragraph"
+        [ngStyle]="{'margin-left': leftMargin}">{{ text
+        }}</span>
+</div>

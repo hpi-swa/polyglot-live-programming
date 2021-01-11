@@ -16,6 +16,7 @@ export class ExampleComponent implements OnInit {
   private _inputs: Map<string, Map<string, string>>;
   inputs: Map<string, string>;
   selected: string;
+  result: string;
 
 
   constructor(private babylonService: BabylonService) { }
@@ -28,6 +29,11 @@ export class ExampleComponent implements OnInit {
     this.selected = this.names[0];
     this._inputs = this.getInitalValues(this.names);
     this.inputs = this._inputs.get(this.selected);
+    this.setResult();
+  }
+
+  private setResult() {
+    this.result = this.babylon.observedValues[0];
   }
 
   private toText() {
@@ -53,6 +59,7 @@ export class ExampleComponent implements OnInit {
 
   updateResults() {
     this.babylonService.updateResultMap(this.babylon.line + this.names.indexOf(this.selected), this.toText());
+    this.setResult();
   }
 
   private getInitalValues(names: Array<string>) {

@@ -35,11 +35,8 @@ body.vscode-high-contrast {
   float: left;
 }
 
-.slidercontainer {
-  float: right;
-}
-
 .textcontainer {
+  position: relative;
   float: left;
 }
 
@@ -52,3 +49,4 @@ body.vscode-high-contrast {
   margin-block-start: -0.5em;
   margin-block-end: 0;
 }
+
