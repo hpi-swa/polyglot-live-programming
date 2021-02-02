@@ -1,6 +1,7 @@
 import { Input } from '@angular/core';
+import { SimpleChanges } from '@angular/core';
 import { Component, OnInit } from '@angular/core';
-import { BabylonRow } from 'src/app/model/babylon-row.model';
+import { BabylonRow } from 'src/app/model/babylon.model';
 import { BabylonService } from 'src/app/service/babylon.service';
 
 @Component({

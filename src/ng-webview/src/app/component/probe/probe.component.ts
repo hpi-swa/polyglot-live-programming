@@ -1,9 +1,10 @@
 import { Input, ViewChild } from '@angular/core';
 import { Component, OnInit } from '@angular/core';
 import { MatSlider, MatSliderChange } from '@angular/material/slider';
-import { BabylonRow } from 'src/app/model/babylon-row.model';
+import { BabylonRow } from 'src/app/model/babylon.model';
 import { BabylonService } from 'src/app/service/babylon.service';
 import { Renderer2, RendererFactory2 } from '@angular/core';
+import { SimpleChanges } from '@angular/core';
 
 @Component({
   selector: 'probe',
@@ -13,6 +14,9 @@ import { Renderer2, RendererFactory2 } from '@angular/core';
 export class ProbeComponent implements OnInit {
 
   @Input() babylon: BabylonRow;
+
+  @Input() selectedExamples: Array<string>;
+
   @ViewChild("matSlider", { static: false }) matSlider: MatSlider;
   public showSlider: boolean;
   public text: string;
@@ -35,6 +39,13 @@ export class ProbeComponent implements OnInit {
     this.showSlider = false;
     this.formatText();
     this.leftMargin = this.calculateLeftMargin().concat('px');
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if(changes.selectedExamples) {
+      this.selectedExamples = changes.selectedExamples.currentValue;
+      console.log(this.selectedExamples);
+    }
   }
 
   public updateSliderLabel(value: any) {

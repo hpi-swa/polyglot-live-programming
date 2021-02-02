@@ -1,0 +1,32 @@
+<span class="example-list-section">
+    <ul>
+        <li *ngFor="let obj of examples" class="row">
+            <div class="textcontainer">
+                <span>
+                    <mat-checkbox [(ngModel)]="obj.selected" (ngModelChange)="updateSelected()" [disabled]="obj.disabled"></mat-checkbox>
+                    <example [babylon]="obj.example"></example>
+                </span>
+            </div>
+        </li>
+    </ul>
+</span>
+<div *ngFor="let r of rows" class="row">
+    <div class="textcontainer">
+        <probe *ngIf="r.probeType && r.probeType.valueOf() === 'PROBE'" [babylon]="r" [selectedExamples]="selected"></probe>
+        <span *ngIf="!r.probeType || r.probeType.valueOf() !== 'EXAMPLE' && r.probeType.valueOf() !== 'PROBE'"
+            class="paragraph background">{{ r.text }}</span>
+    </div>
+</div>
+<!-- 
+<div id="container">
+    <br>
+    <div *ngFor="let r of result" class="row">
+        <div class="textcontainer">
+            <example *ngIf="r.probeType && r.probeType.valueOf() === 'EXAMPLE'" [babylon]="r"></example>
+            <!-- TODO: Once we enabled multiple examples we can spawn as many probes as neccessary via *ngFor
+            <probe *ngIf="r.probeType && r.probeType.valueOf() === 'PROBE'" [babylon]="r"></probe>
+            <span *ngIf="!r.probeType || r.probeType.valueOf() !== 'EXAMPLE' && r.probeType.valueOf() !== 'PROBE'"
+                class="paragraph background">{{ r.text }}</span>
+        </div>
+    </div>
+</div>-->

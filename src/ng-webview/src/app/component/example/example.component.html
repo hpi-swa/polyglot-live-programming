@@ -1,23 +1,21 @@
-<div class="example">
-    <span class="paragraph">
-        &#x3C; Example <b> :name= </b>
-        <mat-form-field [style.width.em]=10 [style.padding.px]=0 [style.border.px]=0>
-            <mat-select [(value)]="selected" (selectionChange)="onSelectionChange($event)">
-                <mat-option *ngFor="let name of names" value="{{ name }}">
-                    {{ name }}
-                </mat-option>
-            </mat-select>
-        </mat-form-field>
-        <span *ngFor="let input of inputs  | keyvalue">
-            <b> {{ input.key }}= </b>
-            <input *ngIf="!+input.value" name="{{ input.key }}" type="text" value="{{ input.value }}"
-                (keyup)="onKey($event)" maxlength="8" size="8">
-            <input *ngIf="+input.value" name="{{ input.key }}" type="number" value="{{ input.value }}"
-                (change)="onChange($event)">
-        </span>
-        <button mat-mini-fab color="warn" aria-label="Submit" class="icon-button" (click)="onSubmit()">
-            <mat-icon class="mat-icon">open_in_new</mat-icon>
-        </button>
-        / &#x3E; <span class="border-highlight-red">{{ result }}</span>
+<span class="example paragraph">
+    &#x3C; Example <b> :name= </b>
+    <mat-form-field [style.width.em]=10 [style.padding.px]=0 [style.border.px]=0>
+        <mat-select [(value)]="selected" (selectionChange)="onSelectionChange($event)">
+            <mat-option *ngFor="let name of names" value="{{ name }}">
+                {{ name }}
+            </mat-option>
+        </mat-select>
+    </mat-form-field>
+    <span *ngFor="let input of inputs  | keyvalue">
+        <b> {{ input.key }}= </b>
+        <input *ngIf="!+input.value" matInput name="{{ input.key }}" type="text" value="{{ input.value }}"
+            (keyup)="onKey($event)" [maxLength]="maxLength" size="8">
+        <input *ngIf="+input.value" name="{{ input.key }}" type="number" value="{{ input.value }}"
+            (change)="onChange($event)">
     </span>
-</div>
+    <button mat-mini-fab color="warn" aria-label="Submit" class="icon-button" (click)="onSubmit()">
+        <mat-icon class="mat-icon">open_in_new</mat-icon>
+    </button>
+    / &#x3E; <span class="border-highlight-red">{{ result }}</span>
+</span>
