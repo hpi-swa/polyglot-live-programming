@@ -16,12 +16,13 @@ import {MatIconModule} from '@angular/material/icon';
 import { ProbeComponent } from './component/probe/probe.component';
 import { BabylonExampleComponent } from './component/babylon-example/babylon-example.component';
 import {MatInputModule} from '@angular/material/input';
+import { AssertionComponent } from './component/assertion/assertion.component';
 
 
 
 
 @NgModule({
-  declarations: [AppComponent, BabylonianAnalysisComponent, ExampleComponent, ProbeComponent, BabylonExampleComponent],
+  declarations: [AppComponent, BabylonianAnalysisComponent, ExampleComponent, ProbeComponent, BabylonExampleComponent, AssertionComponent],
   imports: [
     BrowserModule,
     RouterModule.forRoot([], { useHash: true }),

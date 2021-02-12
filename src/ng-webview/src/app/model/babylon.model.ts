@@ -5,7 +5,7 @@ export class BabylonRow {
     probeType: ProbeType;
     examples: ExampleResult[];
     text: string;
-    observedValues: Array<string>;
+    //observedValues: Array<string>;
 }
 
 export class BabylonExample {
@@ -13,7 +13,6 @@ export class BabylonExample {
     endLine: number;
     examples: BabylonRow[];
     rows: BabylonRow[];
-    assertions: BabylonRow[];
 
     constructor(startLine: number) {
         this.startLine = startLine;

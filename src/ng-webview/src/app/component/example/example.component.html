@@ -1,16 +1,11 @@
 <span class="example paragraph">
     &#x3C; Example <b> :name= </b>
-    <mat-form-field [style.width.em]=10 [style.padding.px]=0 [style.border.px]=0>
-        <mat-select [(value)]="selected" (selectionChange)="onSelectionChange($event)">
-            <mat-option *ngFor="let name of names" value="{{ name }}">
-                {{ name }}
-            </mat-option>
-        </mat-select>
-    </mat-form-field>
+    <input matInput type="text" value="{{ name }}"
+            (keyup)="onKeyName($event)" [maxLength]="name.length" size="{{ name.length }}">
     <span *ngFor="let input of inputs  | keyvalue">
         <b> {{ input.key }}= </b>
         <input *ngIf="!+input.value" matInput name="{{ input.key }}" type="text" value="{{ input.value }}"
-            (keyup)="onKey($event)" [maxLength]="maxLength" size="8">
+            (keyup)="onKey($event)" [maxLength]="input.value.length" size="{{ input.value.length }}">
         <input *ngIf="+input.value" name="{{ input.key }}" type="number" value="{{ input.value }}"
             (change)="onChange($event)">
     </span>

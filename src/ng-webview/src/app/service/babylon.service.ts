@@ -15,11 +15,11 @@ export class BabylonService {
 
   constructor(private communicationService: CommunicationService) {
     this.resultMap = new BehaviorSubject<Array<BabylonExample>>(new Array<BabylonExample>());
-    this.communicationService.getAbstractProbes().subscribe(this.handleResult2.bind(this));
+    this.communicationService.getAbstractProbes().subscribe(this.handleResult.bind(this));
     this.communicationService.background.subscribe((value) => this.background = value);
   }
 
-  private handleResult2(result: Array<AbstractProbe>) {
+  private handleResult(result: Array<AbstractProbe>) {
     var backgroundRows = this.background.match(/[^\n]*\n[^\n]*?/g);
     var resultList = new Array<BabylonExample>();
     if (backgroundRows) {
@@ -38,10 +38,10 @@ export class BabylonService {
     var findEnd = false;
     for (var j = i; j < backgroundRows.length; j++) {
       var row = new BabylonRow();
-      this.extractAbstractProbe(result, row, j);
       row.text = backgroundRows[j];
+      this.extractAbstractProbe(result, row, j);
       if (row.probeType === ProbeType.example) {
-        if(findEnd) {
+        if (findEnd) {
           example.endLine = j + 1;
           return example;
         }
@@ -61,55 +61,8 @@ export class BabylonService {
       row.examples = filtered[0].examples;
       row.line = filtered[0].lineIndex + 1;
       row.probeType = filtered[0].probeType;
-      row.observedValues = this.getObservedValues(filtered[0]);
+      // row.observedValues = this.getObservedValues(filtered[0]);
     }
-  }
-
-  private handleResult(result: Array<AbstractProbe>) {
-    var backgroundRows = this.background.match(/[^\n]*\n[^\n]*?/g);
-    var resultList = new Array<BabylonRow>();
-    if (backgroundRows) {
-      var resultList = new Array<BabylonRow>(backgroundRows.length);
-      var example: BabylonRow;
-      for (var i = 0; i <= backgroundRows.length; i++) {
-        var row = new BabylonRow();
-        var filtered = result.filter(probe => probe.lineIndex === i);
-        if (filtered && filtered.length > 0) {
-          row.examples = filtered[0].examples;
-          row.line = filtered[0].lineIndex + 1;
-          row.probeType = filtered[0].probeType;
-          row.observedValues = this.getObservedValues(filtered[0]);
-        }
-        row.text = backgroundRows[i];
-        if (row.probeType && row.probeType === ProbeType.example) {
-          if (example) {
-            example.examples.push(row.examples[0]);
-            example.text = example.text.concat(row.text);
-          } else {
-            example = row;
-          }
-          continue;
-        }
-        if (example) {
-          resultList[example.line - 1] = example;
-        }
-        example = null;
-        resultList[i] = row;
-      }
-    }
-    resultList.sort(this.compareLineIndex);
-
- //   this.resultMap.next(resultList);
-  }
-
-  private compareLineIndex(a: BabylonRow, b: BabylonRow) {
-    if (a.line < b.line) {
-      return -1;
-    }
-    if (a.line > b.line) {
-      return 1;
-    }
-    return 0;
   }
 
   private getObservedValues(result: AbstractProbe): Array<string> {

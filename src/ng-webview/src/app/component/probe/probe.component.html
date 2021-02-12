@@ -1,13 +1,16 @@
+<span id="whitespace">{{ leadingWhitespaces }}</span>
 <div id="probe_container" (mouseover)="displaySlider()" (mouseout)="hideSlider()">
     <div *ngIf="showSlider===true" class="slidercontainer" id="slidercontainer{{ babylon.line }}">
-        <mat-slider [ngStyle]="{'margin-left': leftMargin}" #matSlider class="max"
-            *ngIf="babylon.observedValues.length > 1" [id]="babylon.line" [style.marginBottom]="'-1.25em'"
-            [style.marginTop]="'-0.5em'" thumbLabel [displayWith]="updateSliderLabel" (input)="onSliderChange($event)"
-            tickInterval="0" min="1" max="{{ babylon.observedValues.length }}">
-        </mat-slider>
-        <span class="text" id="sliderTextField{{ babylon.line }}"></span>
+        <div *ngFor="let example of probeValues | keyvalue">
+            <mat-slider [ngStyle]="{'margin-left': leftMargin}" class="max" *ngIf="example.value.max > 1"
+                [id]="example.value.sliderId" [style.marginBottom]="'-1.25em'" [style.marginTop]="'-0.5em'" thumbLabel
+                [displayWith]="updateSliderLabel" [value]="example.value.defaultValue" (input)="onSliderChange($event, example.key)" tickInterval="0" min="1"
+                max="{{ example.value.max }}">
+            </mat-slider>
+            <span class="text" id="{{ example.value.sliderTextFieldId }}"></span>
+        </div>
+
     </div>
     <span id="background{{ babylon.line }}" *ngIf="showSlider===false" class="border-highlight background paragraph"
-        [ngStyle]="{'margin-left': leftMargin}">{{ text
-        }}</span>
+        [ngStyle]="{'margin-left': leftMargin}">{{ lineText }}</span>
 </div>

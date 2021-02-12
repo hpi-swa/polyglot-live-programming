@@ -13,7 +13,8 @@
 <div *ngFor="let r of rows" class="row">
     <div class="textcontainer">
         <probe *ngIf="r.probeType && r.probeType.valueOf() === 'PROBE'" [babylon]="r" [selectedExamples]="selected"></probe>
-        <span *ngIf="!r.probeType || r.probeType.valueOf() !== 'EXAMPLE' && r.probeType.valueOf() !== 'PROBE'"
+        <assertion *ngIf="r.probeType && r.probeType.valueOf() === 'ASSERTION'" [babylon]="r" [selectedExamples]="selected"></assertion>
+        <span *ngIf="!r.probeType || ( r.probeType.valueOf() !== 'EXAMPLE' && r.probeType.valueOf() !== 'PROBE'  && r.probeType.valueOf() !== 'ASSERTION')"
             class="paragraph background">{{ r.text }}</span>
     </div>
 </div>
