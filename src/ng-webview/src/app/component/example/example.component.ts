@@ -1,8 +1,6 @@
 import { Input } from '@angular/core';
-import { SimpleChanges } from '@angular/core';
 import { Component, OnInit } from '@angular/core';
 import { BabylonRow } from 'src/app/model/babylon.model';
-import { SelectedExampleWrapper } from 'src/app/model/helper.model';
 import { BabylonService } from 'src/app/service/babylon.service';
 
 @Component({
