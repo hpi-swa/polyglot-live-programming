@@ -7,7 +7,7 @@ import { Renderer2, RendererFactory2 } from '@angular/core';
 import { SimpleChanges } from '@angular/core';
 import { ExampleResult } from '../../../../../babylonianAnalysisTypes';
 import { OnChanges } from '@angular/core';
-import { Probe } from 'src/app/model/helper.model';
+import { Probe, SelectedExampleWrapper } from 'src/app/model/helper.model';
 
 @Component({
   selector: 'probe',
@@ -15,36 +15,33 @@ import { Probe } from 'src/app/model/helper.model';
   styleUrls: ['./probe.component.css']
 })
 export class ProbeComponent implements OnChanges, OnInit {
-  private static  probePrefix: string = '// <Probe />';
 
   @Input() babylon: BabylonRow;
 
-  @Input() selectedExamples: Array<string>;
+  @Input() selectedExamples: Array<SelectedExampleWrapper>;
 
   private _observedValues: Map<string, Array<string>>;
   private _initialized = false;
 
   public probeValues: Map<string, Probe>;
   public showSlider: boolean;
-  
+
   public lineText: string;
   public leadingWhitespaces: string;
+
   public leftMargin: string;
+
   private sliderActionCounter: number;
-  private replacementText: string;
-  private backgroundTextElementId: string;
-
-
 
   constructor(private babylonService: BabylonService, private renderer: Renderer2) { }
 
   ngOnInit(): void {
-    this.backgroundTextElementId = 'background'.concat(this.babylon.line.toString());
     this.sliderActionCounter = 0;
     this.showSlider = false;
     this.formatText();
     this.leftMargin = this.calculateLeftMargin().concat('px');
     this._observedValues = this.extractObservedValues();
+    this.probeValues = new Map<string, Probe>();
     this.selectExamples();
     this._initialized = true;
   }
@@ -68,7 +65,7 @@ export class ProbeComponent implements OnChanges, OnInit {
     const probe = this.probeValues.get(key);
     const sliderValue: number = event.value;
     probe.defaultValue = sliderValue;
-    this.updateTextArea(this.probeValues.get(key).values[sliderValue - 1], probe.sliderTextFieldId);
+    probe.textInput = probe.values[sliderValue - 1];
   }
 
   // Mouseout
@@ -76,7 +73,7 @@ export class ProbeComponent implements OnChanges, OnInit {
     let currentActionCounter = this.sliderActionCounter;
     setTimeout(() => {
       if (currentActionCounter === this.sliderActionCounter) {
-        this.showSlider = false;
+        //this.showSlider = false;
       }
     }, 1000);
   }
@@ -110,21 +107,23 @@ export class ProbeComponent implements OnChanges, OnInit {
     return result;
   }
 
-  private updateTextArea(text: string, textAreaId: string) {
-    document.getElementById(textAreaId)!.innerHTML = text;
-  }
-
   private selectExamples() {
-    this.probeValues = new Map<string, Probe>();
+    const _probeValues = new Map<string, Probe>();
     this._observedValues.forEach((value: Array<string>, key: string) => {
-      if (this.selectedExamples.includes(key)) {
-        this.probeValues.set(key, new Probe({
+      if (SelectedExampleWrapper.inSelectedExample(this.selectedExamples, key)) {
+        const preserveValues = this.probeValues.get(key);
+        const _defaultValue = preserveValues ? preserveValues.defaultValue : 1;
+        _probeValues.set(key, new Probe({
           babylonText: this.babylon.text,
           exampleName: key,
-          values: value
+          values: value,
+          color: this.selectedExamples.find(e => e.name === key).color,
+          defaultValue: _defaultValue,
+          textInput: value[_defaultValue - 1]
         }));
       }
     });
+    this.probeValues = _probeValues;
   }
 
   private formatText() {

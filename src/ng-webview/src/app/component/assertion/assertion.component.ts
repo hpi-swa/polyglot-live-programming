@@ -1,6 +1,7 @@
 import { Input, OnChanges, SimpleChanges } from '@angular/core';
 import { Component, OnInit } from '@angular/core';
 import { BabylonRow } from 'src/app/model/babylon.model';
+import { SelectedExampleWrapper } from 'src/app/model/helper.model';
 import { ExampleResult } from '../../../../../babylonianAnalysisTypes';
 
 @Component({
@@ -12,7 +13,7 @@ export class AssertionComponent implements  OnChanges, OnInit {
 
   @Input() babylon: BabylonRow;
 
-  @Input() selectedExamples: Array<string>;
+  @Input() selectedExamples: Array<SelectedExampleWrapper>;
 
   private initialized = false;
 
@@ -30,8 +31,6 @@ export class AssertionComponent implements  OnChanges, OnInit {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.initialized) {
-      console.log("change");
-      console.log(this._observedValues);
       if (changes.selectedExamples) {
         this.selectedExamples = changes.selectedExamples.currentValue;
         this.selectExamples();
@@ -39,10 +38,18 @@ export class AssertionComponent implements  OnChanges, OnInit {
     }
   }
 
+  public getColor(key: string) {
+    const example = this.selectedExamples.find(e => e.name === key);
+    if(example) {
+      return example.color;
+    }
+    return "black";
+  }
+
   private selectExamples() {
     this.selectedValues = new Map<string, string>();
     this._observedValues.forEach((value: string, key: string) => {
-      if (this.selectedExamples.includes(key)) {
+      if (SelectedExampleWrapper.inSelectedExample(this.selectedExamples, key)) {
         this.selectedValues.set(key, value);
       }
     });

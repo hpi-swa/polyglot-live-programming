@@ -2,6 +2,7 @@ import { Input } from '@angular/core';
 import { SimpleChanges } from '@angular/core';
 import { Component, OnInit } from '@angular/core';
 import { BabylonRow } from 'src/app/model/babylon.model';
+import { SelectedExampleWrapper } from 'src/app/model/helper.model';
 import { BabylonService } from 'src/app/service/babylon.service';
 
 @Component({
@@ -12,6 +13,8 @@ import { BabylonService } from 'src/app/service/babylon.service';
 export class ExampleComponent implements OnInit {
 
   @Input() babylon: BabylonRow;
+
+  @Input() color: string;
 
   name: string;
   inputs: Map<string, string>;
@@ -36,29 +39,25 @@ export class ExampleComponent implements OnInit {
     return exampleText.concat(' />');
   }
 
-  // input 
-  onChange(event: any) {
+  // number value filed 
+  public onChange(event: any) {
     this.inputs.set(event.target.getAttribute('name'), event.target.value);
   }
-
-  onKey(event: any) {
+  // number value filed 
+  public onKey(event: any) {
     this.inputs.set(event.target.getAttribute('name'), event.target.value);
-  }
-
-  onKeyName(event: any) {
-    console.log("TODO:" + event.target.value);
   }
   
-  onSubmit() {
+  public onSubmit() {
     this.babylonService.updateResultMap(this.babylon.line, this.toText());
   }
 
   private getInitalValues(): Map<string, string> {
     var inputs = new Map<string, string>();
-    const matches = this.babylon.text.match(/(:)*[^\s]+="[^\s]+"/g);
+    const matches = this.babylon.text.match(/(:)*[^(\"|\'|\s)]+=(\"|\')[^(\"|\')]+(\"|\')/g);
     matches.forEach((match, i) => {
-      const key = match.match(/(:)*[^\s]+=/g)[0].replace('=', '');
-      const value = match.match(/[^="\s]+"/g)[0].replace('"', '');
+      const key = match.match(/(:)*[^(\"|\'|\s)]+=/g)[0].split('=').join("");
+      const value = match.match(/(\"|\')[^(\"|\')]+(\"|\')/g)[0].split('"').join("").split("'").join("");
       if (key !== ':name') {
         inputs.set(key, value);
       }

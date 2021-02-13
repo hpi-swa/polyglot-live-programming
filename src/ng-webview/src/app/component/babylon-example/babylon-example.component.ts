@@ -1,6 +1,7 @@
 import { Input } from '@angular/core';
 import { Component, OnInit } from '@angular/core';
 import { BabylonExample, BabylonRow } from 'src/app/model/babylon.model';
+import { Example, SelectedExampleWrapper } from 'src/app/model/helper.model';
 
 @Component({
   selector: 'babylon-example',
@@ -11,13 +12,11 @@ export class BabylonExampleComponent implements OnInit {
 
   @Input() babylonExample: BabylonExample;
 
-  examples: {
-    example: BabylonRow,
-    selected: boolean,
-    disabled: boolean
-  }[];
-  rows: BabylonRow[];
-  selected: Array<string>;
+  public _selected: Map<string, SelectedExampleWrapper>;
+
+  public examples: Array<Example>;
+  public rows: BabylonRow[];
+  public selected: Array<SelectedExampleWrapper>;
 
   constructor() { }
 
@@ -27,9 +26,11 @@ export class BabylonExampleComponent implements OnInit {
       this.examples.push({
         example: value,
         selected: true,
-        disabled: this.babylonExample.examples.length === 1
+        disabled: this.babylonExample.examples.length === 1,
+        color: this.generateColor()
       });
     });
+    this.createSelected();
     this.updateSelected();
     this.rows = this.babylonExample.rows;
   }
@@ -38,12 +39,13 @@ export class BabylonExampleComponent implements OnInit {
     this.selected = new Array();
     this.examples.forEach(value => {
       if (value.selected) {
-        this.selected.push(value.example.examples[0].exampleName);
+        const exampleName = value.example.examples[0].exampleName;
+        this.selected.push(this._selected.get(exampleName));
       }
     });
     if (this.selected.length === 1) {
       this.examples.forEach(value => {
-        if (value.example.examples[0].exampleName === this.selected[0]) {
+        if (value.example.examples[0].exampleName === this.selected[0].name) {
           value.disabled = true;
         }
       });
@@ -52,6 +54,26 @@ export class BabylonExampleComponent implements OnInit {
         value.disabled = false;
       });
     }
+  }
+
+  public getColor(key: string) {
+    return this._selected.get(key).color;
+  }
+
+  private createSelected() {
+    this._selected = new Map();
+    this.examples.forEach((value: Example, index: number) => {
+      const exampleName = value.example.examples[0].exampleName;
+      this._selected.set(exampleName, {
+        name: exampleName,
+        color: value.color
+      });
+    });
+  }
+
+  // TODO: Matching color model
+  private generateColor() {
+    return '#'+(0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6);
   }
 
 }

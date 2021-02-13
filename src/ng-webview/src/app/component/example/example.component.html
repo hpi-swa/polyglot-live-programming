@@ -1,11 +1,10 @@
-<span class="example paragraph">
+<span class="example paragraph" [style.color]="color">
     &#x3C; Example <b> :name= </b>
-    <input matInput type="text" value="{{ name }}"
-            (keyup)="onKeyName($event)" [maxLength]="name.length" size="{{ name.length }}">
+    <input matInput type="text" [(ngModel)]="name" size="{{ name.length }}">
     <span *ngFor="let input of inputs  | keyvalue">
         <b> {{ input.key }}= </b>
         <input *ngIf="!+input.value" matInput name="{{ input.key }}" type="text" value="{{ input.value }}"
-            (keyup)="onKey($event)" [maxLength]="input.value.length" size="{{ input.value.length }}">
+            (change)="onKey($event)" size="{{ input.value.length }}">
         <input *ngIf="+input.value" name="{{ input.key }}" type="number" value="{{ input.value }}"
             (change)="onChange($event)">
     </span>

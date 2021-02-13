@@ -5,7 +5,6 @@ export class BabylonRow {
     probeType: ProbeType;
     examples: ExampleResult[];
     text: string;
-    //observedValues: Array<string>;
 }
 
 export class BabylonExample {

@@ -1,15 +1,14 @@
-<span id="whitespace">{{ leadingWhitespaces }}</span>
 <div id="probe_container" (mouseover)="displaySlider()" (mouseout)="hideSlider()">
     <div *ngIf="showSlider===true" class="slidercontainer" id="slidercontainer{{ babylon.line }}">
         <div *ngFor="let example of probeValues | keyvalue">
-            <mat-slider [ngStyle]="{'margin-left': leftMargin}" class="max" *ngIf="example.value.max > 1"
-                [id]="example.value.sliderId" [style.marginBottom]="'-1.25em'" [style.marginTop]="'-0.5em'" thumbLabel
-                [displayWith]="updateSliderLabel" [value]="example.value.defaultValue" (input)="onSliderChange($event, example.key)" tickInterval="0" min="1"
-                max="{{ example.value.max }}">
+            <span [ngStyle]="{'margin-left': leftMargin}" ></span>
+            <mat-slider class="max" *ngIf="example.value.max > 1"[id]="example.value.sliderId" [style.marginBottom]="'-1.25em'" 
+                [style.marginTop]="'-0.5em'" thumbLabel [displayWith]="updateSliderLabel" [value]="example.value.defaultValue" 
+                (input)="onSliderChange($event, example.key)" tickInterval="0" min="1" max="{{ example.value.max }}">
             </mat-slider>
-            <span class="text" id="{{ example.value.sliderTextFieldId }}"></span>
+            <span [style.color]="example.value.color" class="text" *ngIf="example.value.max === 1">{{ example.key }}: </span>
+            <span [style.color]="example.value.color" class="text" id="{{ example.value.sliderTextFieldId }}">{{ example.value.textInput }}</span>
         </div>
-
     </div>
     <span id="background{{ babylon.line }}" *ngIf="showSlider===false" class="border-highlight background paragraph"
         [ngStyle]="{'margin-left': leftMargin}">{{ lineText }}</span>
