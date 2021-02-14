@@ -1,12 +1,6 @@
 <div id="container">
     <br>
-    <div *ngFor="let r of result" class="row">
-        <div class="textcontainer">
-            <example *ngIf="r.probeType && r.probeType.valueOf() === 'EXAMPLE'" [babylon]="r"></example>
-            <!-- TODO: Once we enabled multiple examples we can spawn as many probes as neccessary via *ngFor-->
-            <probe *ngIf="r.probeType && r.probeType.valueOf() === 'PROBE'" [babylon]="r"></probe>
-            <span *ngIf="!r.probeType || r.probeType.valueOf() !== 'EXAMPLE' && r.probeType.valueOf() !== 'PROBE'"
-                class="paragraph background">{{ r.text }}</span>
-        </div>
+    <div *ngFor="let r of result">
+        <babylon-example [babylonExample]="r"></babylon-example>
     </div>
 </div>

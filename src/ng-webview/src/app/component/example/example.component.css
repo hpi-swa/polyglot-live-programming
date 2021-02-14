@@ -8,6 +8,7 @@ input[type=number] {
 
 .example {
   opacity: 1 !important;
+  white-space: nowrap;
 }
 
 ::ng-deep .mat-form-field-appearance-legacy .mat-form-field-wrapper {

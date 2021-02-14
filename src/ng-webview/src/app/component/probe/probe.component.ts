@@ -1,71 +1,129 @@
 import { Input, ViewChild } from '@angular/core';
 import { Component, OnInit } from '@angular/core';
 import { MatSlider, MatSliderChange } from '@angular/material/slider';
-import { BabylonRow } from 'src/app/model/babylon-row.model';
+import { BabylonRow } from 'src/app/model/babylon.model';
 import { BabylonService } from 'src/app/service/babylon.service';
 import { Renderer2, RendererFactory2 } from '@angular/core';
+import { SimpleChanges } from '@angular/core';
+import { ExampleResult } from '../../../../../babylonianAnalysisTypes';
+import { OnChanges } from '@angular/core';
+import { Probe, SelectedExampleWrapper } from 'src/app/model/helper.model';
 
 @Component({
   selector: 'probe',
   templateUrl: './probe.component.html',
   styleUrls: ['./probe.component.css']
 })
-export class ProbeComponent implements OnInit {
+export class ProbeComponent implements OnChanges, OnInit {
 
   @Input() babylon: BabylonRow;
-  @ViewChild("matSlider", { static: false }) matSlider: MatSlider;
+
+  @Input() selectedExamples: Array<SelectedExampleWrapper>;
+
+  private _observedValues: Map<string, Array<string>>;
+  private _initialized = false;
+
+  public probeValues: Map<string, Probe>;
   public showSlider: boolean;
-  public text: string;
+
+  public lineText: string;
+  public leadingWhitespaces: string;
+
   public leftMargin: string;
+
   private sliderActionCounter: number;
-  private singleObservationIndicator: boolean;
-  private leadingWhitespaces: string;
-  private probePrefix: string = '// <Probe />';
-  private replacementText: string;
-  private sliderIndex: number;
-  private backgroundTextElementId: string;
-  private sliderTextFieldElementId: string;
 
   constructor(private babylonService: BabylonService, private renderer: Renderer2) { }
 
   ngOnInit(): void {
-    this.backgroundTextElementId = 'background'.concat(this.babylon.line.toString());
-    this.sliderTextFieldElementId = 'sliderTextField'.concat(this.babylon.line.toString());
     this.sliderActionCounter = 0;
     this.showSlider = false;
     this.formatText();
     this.leftMargin = this.calculateLeftMargin().concat('px');
+    this._observedValues = this.extractObservedValues();
+    this.probeValues = new Map<string, Probe>();
+    this.selectExamples();
+    this._initialized = true;
   }
 
+  ngOnChanges(changes: SimpleChanges) {
+    if (this._initialized) {
+      if (changes.selectedExamples) {
+        this.selectedExamples = changes.selectedExamples.currentValue;
+        this.selectExamples();
+      }
+    }
+  }
+
+  // Display With
   public updateSliderLabel(value: any) {
     return value;
   }
 
-  public displaySlider() {
-    this.sliderActionCounter++;
-    if (this.isSingleObservation()) {
-      this.handleSingleObservation();
-    } else {
-      this.handleSlider();
-    }
-  }
-
-  public onSliderChange(event: MatSliderChange) {
+  // on Change
+  public onSliderChange(event: MatSliderChange, key: string) {
+    const probe = this.probeValues.get(key);
     const sliderValue: number = event.value;
-    this.sliderIndex = sliderValue;
-    this.updateTextArea(this.babylon.observedValues[sliderValue - 1], this.sliderTextFieldElementId);
+    probe.defaultValue = sliderValue;
+    probe.textInput = probe.values[sliderValue - 1];
   }
 
+  // Mouseout
   public hideSlider() {
     let currentActionCounter = this.sliderActionCounter;
     setTimeout(() => {
       if (currentActionCounter === this.sliderActionCounter) {
-        if (this.singleObservationIndicator && this.replacementText) {
-          this.text = this.text.replace(this.replacementText, this.probePrefix);
-        }
         this.showSlider = false;
       }
     }, 1000);
+  }
+
+  // Mouseover
+  public displaySlider() {
+    this.sliderActionCounter++;
+    this.showSlider = true;
+  }
+
+  private extractObservedValues(): Map<string, Array<string>> {
+    const map = new Map<string, Array<string>>();
+    if (this.babylon.examples && this.babylon.examples.length > 0) {
+      let exampleResult: ExampleResult;
+      for (exampleResult of this.babylon.examples) {
+        map.set(exampleResult.exampleName, this.getObservedValues(exampleResult));
+      }
+    }
+    return map;
+  }
+
+  private getObservedValues(exampleResult: ExampleResult): Array<string> {
+    const result = new Array<string>();
+    if (exampleResult.observedValues) {
+      for (const observedValue of exampleResult.observedValues) {
+        if (observedValue.displayString) {
+          result.push(observedValue.displayString);
+        }
+      }
+    }
+    return result;
+  }
+
+  private selectExamples() {
+    const _probeValues = new Map<string, Probe>();
+    this._observedValues.forEach((value: Array<string>, key: string) => {
+      if (SelectedExampleWrapper.inSelectedExample(this.selectedExamples, key)) {
+        const preserveValues = this.probeValues.get(key);
+        const _defaultValue = preserveValues ? preserveValues.defaultValue : 1;
+        _probeValues.set(key, new Probe({
+          babylonText: this.babylon.text,
+          exampleName: key,
+          values: value,
+          color: this.selectedExamples.find(e => e.name === key).color,
+          defaultValue: _defaultValue,
+          textInput: value[_defaultValue - 1]
+        }));
+      }
+    });
+    this.probeValues = _probeValues;
   }
 
   private formatText() {
@@ -77,52 +135,9 @@ export class ProbeComponent implements OnInit {
       }
     });
     txt = this.babylon.text.trim();
-    this.text = txt;
+    this.lineText = txt;
     this.babylon.text = txt;
     this.leadingWhitespaces = spaces;
-  }
-
-  private restoreSlider() {
-    if (!this.sliderIndex) {
-      const initialValue: string = this.babylon.observedValues[0];
-      this.setSliderValueText(initialValue);
-    } else {
-      const slider: MatSlider = this.matSlider;
-      if (slider) {
-        slider.value = this.sliderIndex;
-        this.setSliderValueText(this.babylon.observedValues[this.sliderIndex - 1]);
-      }
-    }
-  }
-
-  private updateTextArea(text: string, textAreaId: string) {
-    document.getElementById(textAreaId)!.innerHTML = text;
-  }
-
-  private handleSlider() {
-    this.showSlider = true;
-    this.restoreSlider();
-  }
-
-  private isSingleObservation(): boolean {
-    return this.babylon.observedValues.length <= 1;
-  }
-
-  private handleSingleObservation() {
-    this.singleObservationIndicator = true;
-    this.showSlider = false;
-    this.replacementText = this.babylon.observedValues[0];
-    let diff = this.probePrefix.length - this.replacementText.length;
-    for (let i = 0; i < diff; i++) {
-      this.replacementText = this.replacementText.concat(' ');
-    }
-    this.text = this.text.replace(this.probePrefix, this.replacementText);
-  }
-
-  private setSliderValueText(text: string) {
-    this.babylonService.waitForElement(this.sliderTextFieldElementId, text, function () {
-      document.getElementById(arguments[0])!.innerHTML = arguments[1];
-    });
   }
 
   private calculateLeftMargin(): string {
