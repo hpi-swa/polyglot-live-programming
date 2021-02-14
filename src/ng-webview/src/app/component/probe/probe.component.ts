@@ -73,7 +73,7 @@ export class ProbeComponent implements OnChanges, OnInit {
     let currentActionCounter = this.sliderActionCounter;
     setTimeout(() => {
       if (currentActionCounter === this.sliderActionCounter) {
-        //this.showSlider = false;
+        this.showSlider = false;
       }
     }, 1000);
   }
