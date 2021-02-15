@@ -1,4 +1,4 @@
-<span class="example paragraph" [style.color]="color">
+<span class="example paragraph">
     &#x3C; Example <b> :name= </b>
     <input matInput type="text" [(ngModel)]="name" size="{{ name.length }}">
     <span *ngFor="let input of inputs  | keyvalue">
@@ -11,5 +11,5 @@
     <button mat-mini-fab color="warn" aria-label="Submit" class="icon-button" (click)="onSubmit()">
         <mat-icon class="mat-icon">open_in_new</mat-icon>
     </button>
-    / &#x3E; <span class="border-highlight-red">{{ result }}</span>
+    / &#x3E; <span [ngClass]="'border-highlight-' + color">{{ result }}</span>
 </span>

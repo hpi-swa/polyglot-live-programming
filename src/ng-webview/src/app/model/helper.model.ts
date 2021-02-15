@@ -11,6 +11,8 @@ export class Probe {
     public max: number;
     public sliderActionCounter: number;
     public color: string;
+    public color2: string;
+    public color3: string;
     public textInput: string;
 
     constructor(attributes: {

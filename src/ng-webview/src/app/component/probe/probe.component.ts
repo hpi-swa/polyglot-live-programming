@@ -17,7 +17,7 @@ import { Probe, SelectedExampleWrapper } from 'src/app/model/helper.model';
 export class ProbeComponent implements OnChanges, OnInit {
 
   @Input() babylon: BabylonRow;
-
+  @ViewChild("matSlider", { static: false }) matSlider: MatSlider;
   @Input() selectedExamples: Array<SelectedExampleWrapper>;
 
   private _observedValues: Map<string, Array<string>>;
@@ -60,6 +60,12 @@ export class ProbeComponent implements OnChanges, OnInit {
     return value;
   }
 
+  // on drag & drop action
+  drop(color: string, line: string) {
+    let sliderId = "slider_span_".concat(color).concat(line);
+    document.getElementById(sliderId).style.marginLeft = "0px";
+  }
+
   // on Change
   public onSliderChange(event: MatSliderChange, key: string) {
     const probe = this.probeValues.get(key);
@@ -75,7 +81,7 @@ export class ProbeComponent implements OnChanges, OnInit {
       if (currentActionCounter === this.sliderActionCounter) {
         this.showSlider = false;
       }
-    }, 1000);
+    }, 4000);
   }
 
   // Mouseover

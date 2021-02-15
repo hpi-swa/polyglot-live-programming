@@ -17,6 +17,7 @@ import { ProbeComponent } from './component/probe/probe.component';
 import { BabylonExampleComponent } from './component/babylon-example/babylon-example.component';
 import {MatInputModule} from '@angular/material/input';
 import { AssertionComponent } from './component/assertion/assertion.component';
+import { DragDropModule } from '@angular/cdk/drag-drop';
 
 
 
@@ -34,7 +35,8 @@ import { AssertionComponent } from './component/assertion/assertion.component';
     BrowserAnimationsModule,
     MatIconModule,
     MatCheckboxModule,
-    MatInputModule
+    MatInputModule,
+    DragDropModule
   ],
   providers: [CommunicationService],
   bootstrap: [AppComponent],

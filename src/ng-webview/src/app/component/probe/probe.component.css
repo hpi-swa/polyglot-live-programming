@@ -24,7 +24,7 @@
     padding-top: 0.85em;
 }
 
-:host ::ng-deep .max .mat-slider-thumb {
+/* :host ::ng-deep .max .mat-slider-thumb {
     background-color: orange;
 }
 
@@ -34,16 +34,17 @@
 
 :host ::ng-deep .max .mat-slider-track-fill {
     background-color: orange;
-}
+} */
 
 #probe_container:hover {
-    -webkit-transform: scale(1.8);
-    transform        : scale(1.8);
+    -webkit-transform: scale(1.6);
+    transform        : scale(1.6);
+    transition: all 0.5s ease 0s;
 }
 
 #probe_container {
-    -webkit-transition: 0.5s;
-    transition        : 0.5s;
+    -webkit-transition: 1s;
+    transition: all 0.5s ease-in-out 3s;
 }
 
 .marginHelperClass {
@@ -55,3 +56,64 @@
     border : 2px dashed orange;
     padding: 0.03em 0.25em;
 }
+
+.slider-bg-orange-1 ::ng-deep .max .mat-slider-thumb {
+    background-color: orange;
+  }
+  .slider-bg-orange-2 ::ng-deep .max .mat-slider-thumb-label {
+    background-color: orange;
+  }
+  .slider-bg-orange-3 ::ng-deep .max .mat-slider-track-fill {
+    background-color: orange;
+  }
+
+  .slider-bg-blue-1 ::ng-deep .max .mat-slider-thumb {
+    background-color: blue;
+  }
+  .slider-bg-blue-2 ::ng-deep .max .mat-slider-thumb-label {
+    background-color: blue;
+  }
+  .slider-bg-blue-3 ::ng-deep .max .mat-slider-track-fill {
+    background-color: blue;
+  }
+
+  .slider-bg-red-1 ::ng-deep .max .mat-slider-thumb {
+    background-color: red;
+  }
+  .slider-bg-red-2 ::ng-deep .max .mat-slider-thumb-label {
+    background-color: red;
+  }
+  .slider-bg-red-3 ::ng-deep .max .mat-slider-track-fill {
+    background-color: red;
+  }
+
+  .slider-bg-green-1 ::ng-deep .max .mat-slider-thumb {
+    background-color: green;
+  }
+  .slider-bg-green-2 ::ng-deep .max .mat-slider-thumb-label {
+    background-color: green;
+  }
+  .slider-bg-green-2 ::ng-deep .max .mat-slider-track-fill {
+    background-color: green;
+  }
+
+  .slider-bg-purple-1 ::ng-deep .max .mat-slider-thumb {
+    background-color: purple;
+  }
+  .slider-bg-purple-2 ::ng-deep .max .mat-slider-thumb-label {
+    background-color: purple;
+  }
+  .slider-bg-purple-3 ::ng-deep .max .mat-slider-track-fill {
+    background-color: purple;
+  }
+
+  .example-handle {
+    float: right;
+    top: 15px;
+    right: 0px;
+    color: #ccc;
+    cursor: move;
+    width: 24px;
+    height: 24px;
+    display: contents;
+  }

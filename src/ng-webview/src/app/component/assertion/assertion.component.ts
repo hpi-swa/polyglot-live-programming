@@ -1,3 +1,4 @@
+import { Renderer2 } from '@angular/core';
 import { Input, OnChanges, SimpleChanges } from '@angular/core';
 import { Component, OnInit } from '@angular/core';
 import { BabylonRow } from 'src/app/model/babylon.model';
@@ -20,10 +21,14 @@ export class AssertionComponent implements  OnChanges, OnInit {
   private _observedValues: Map<string, string>;
 
   public selectedValues: Map<string, string>;
+  public leadingWhitespaces: string;
+  public leftMargin: string;
 
-  constructor() { }
+  constructor(private renderer: Renderer2) { }
 
   ngOnInit(): void {
+    this.formatText();
+    this.leftMargin = this.calculateLeftMargin().concat('px');
     this._observedValues = this.extractObservedValues();
     this.selectExamples();
     this.initialized = true;
@@ -66,5 +71,39 @@ export class AssertionComponent implements  OnChanges, OnInit {
     return map;
   }
 
+  private calculateLeftMargin(): string {
+    const marginHelper = this.renderer.createElement('div');
+    this.renderer.setProperty(marginHelper, 'id', 'marginHelper_assert');
+    this.renderer.addClass(marginHelper, 'marginHelperClass_assert');
+    const text = this.renderer.createText('0');
+    this.renderer.appendChild(marginHelper, text);
+    this.renderer.appendChild(document.head, marginHelper);
 
+    const helper = document.getElementById('marginHelper_assert');
+    const width = helper.offsetWidth;
+
+    //this.renderer.removeChild(document.body, marginHelper);
+    console.log("length", this.leadingWhitespaces.length);
+    console.log("width", width);
+    return (this.leadingWhitespaces.length * width).toString();
+  }
+
+  private formatText() {
+    console.log(this.babylon);
+    console.log(this.babylon.text);
+    let spaces = '';
+    let txt = '';
+    for (let el of Array.from(this.babylon.text)) {
+      if (el !== ' ') {
+        break;
+      }
+      spaces = spaces.concat(' ');
+    }
+      
+    txt = this.babylon.text.trim();
+    this.leadingWhitespaces = spaces;
+    console.log("leading whitespace", spaces);
+  }
 }
+
+

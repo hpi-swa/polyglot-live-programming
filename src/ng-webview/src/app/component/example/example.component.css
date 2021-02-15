@@ -41,6 +41,26 @@ input[type=number] {
 }
 
 .border-highlight-red {
-  border : 2px dashed rgba(255, 0, 0, 0.438);
+  border : 2px dashed red;
+  padding: 0.03em 0.25em;
+}
+
+.border-highlight-orange {
+  border : 2px dashed orange;
+  padding: 0.03em 0.25em;
+}
+
+.border-highlight-green {
+  border : 2px dashed green;
+  padding: 0.03em 0.25em;
+}
+
+.border-highlight-blue {
+  border : 2px dashed blue;
+  padding: 0.03em 0.25em;
+}
+
+.border-highlight-purple {
+  border : 2px dashed purple;
   padding: 0.03em 0.25em;
 }

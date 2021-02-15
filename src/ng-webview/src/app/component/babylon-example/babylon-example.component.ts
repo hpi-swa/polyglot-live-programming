@@ -1,7 +1,9 @@
+import { mapToMapExpression } from '@angular/compiler/src/render3/util';
 import { Input } from '@angular/core';
 import { Component, OnInit } from '@angular/core';
 import { BabylonExample, BabylonRow } from 'src/app/model/babylon.model';
 import { Example, SelectedExampleWrapper } from 'src/app/model/helper.model';
+import { BabylonService } from 'src/app/service/babylon.service';
 
 @Component({
   selector: 'babylon-example',
@@ -17,22 +19,33 @@ export class BabylonExampleComponent implements OnInit {
   public examples: Array<Example>;
   public rows: BabylonRow[];
   public selected: Array<SelectedExampleWrapper>;
+  private colorListCopy: Array<string>;
 
-  constructor() { }
+
+  constructor(private babylonService: BabylonService) { }
 
   ngOnInit(): void {
+    this.colorListCopy = this.babylonService.colorList.slice(0, this.babylonService.colorList.length);
     this.examples = new Array();
     this.babylonExample.examples.forEach((value, index) => {
       this.examples.push({
         example: value,
         selected: true,
         disabled: this.babylonExample.examples.length === 1,
-        color: this.generateColor()
+        color: this.pickColor(),
       });
     });
     this.createSelected();
     this.updateSelected();
     this.rows = this.babylonExample.rows;
+  }
+
+  private pickColor(): string {
+    if (this.colorListCopy.length > 0) {
+      return this.colorListCopy.shift();
+    }
+    this.colorListCopy = this.babylonService.colorList.slice(0, this.babylonService.colorList.length);
+    this.pickColor();
   }
 
   updateSelected() {
@@ -73,7 +86,9 @@ export class BabylonExampleComponent implements OnInit {
 
   // TODO: Matching color model
   private generateColor() {
-    return '#'+(0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6);
+    let color = '#'+(0x1000000+(Math.random())*0xffffff).toString(16).substr(1,6);
+    console.log(color);
+    return color;
   }
 
 }

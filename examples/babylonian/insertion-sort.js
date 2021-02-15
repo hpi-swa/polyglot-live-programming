@@ -1,4 +1,5 @@
-// <Example array="[6, 1, 4, 2]" />
+// <Example :name="test" array="[6, 1, 4, 2]" />
+// <Example array="[1, 3, 2, 3]" />
 function insertionSort(array) {
     for (let i = 1; i < array.length; i++) {
         // <Probe :expression="array" />

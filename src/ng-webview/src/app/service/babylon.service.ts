@@ -12,6 +12,7 @@ export class BabylonService {
 
   private background: string = " ";
   private resultMap: BehaviorSubject<Array<BabylonExample>>;
+  public colorList: Array<string> = ['orange','blue','red','green','purple'];
 
   constructor(private communicationService: CommunicationService) {
     this.resultMap = new BehaviorSubject<Array<BabylonExample>>(new Array<BabylonExample>());

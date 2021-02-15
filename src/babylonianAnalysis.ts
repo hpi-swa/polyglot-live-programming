@@ -42,6 +42,7 @@ let lastDidChangeTimeout: NodeJS.Timeout | null = null;
 let panel: vscode.WebviewPanel | null = null;
 let webviewLine: number = 0;
 let webviewIsScrolling: boolean = false;
+let triggeredByTextEditorChange: boolean;
 
 
 export function initializeBabylonianAnalysis(context: vscode.ExtensionContext, graalVMExtension: vscode.Extension<GraalVMExtension>, uriHandler: UriHandler) {
@@ -91,7 +92,7 @@ function handleBabylonianAnalysisResult(result: ba.BabylonianAnalysisResult, isF
 				buildPanel(context);
 			}
 			if (panel) {
-				sendResultsToWebView(resultsArray, panel);
+				sendResultsToWebView(resultsArray, panel, context);
 			}
 		}
 	}
@@ -145,10 +146,16 @@ export function buildPanel(context: ExtensionContext) {
 	panelView.webview.postMessage({
 		editorConfig: getEditorConfig()
 	});
+
+	panelView.onDidDispose(e => {
+		panel = null;
+	});
+
+	onDidChangeActiveTextEditorHandler(context);
 	panel = panelView;
 }
 
-function sendResultsToWebView(result: Array<ba.AbstractProbe>, panelView: vscode.WebviewPanel) {
+function sendResultsToWebView(result: Array<ba.AbstractProbe>, panelView: vscode.WebviewPanel, context: vscode.ExtensionContext | undefined) {
 	const editor = vscode.window.visibleTextEditors;
 	if (editor[0]) {
 		var texteditor = editor[0];
@@ -166,6 +173,17 @@ function sendResultsToWebView(result: Array<ba.AbstractProbe>, panelView: vscode
 			scroll: texteditor.visibleRanges
 		});
 	}
+}
+
+function onDidChangeActiveTextEditorHandler(context: vscode.ExtensionContext) {
+	vscode.window.onDidChangeActiveTextEditor(e => {
+		if (context && isEnabled) {
+			const editor = vscode.window.activeTextEditor;
+			if (editor && containsExemplifiedCode(editor.document)) {
+				requestBabylonianAnalysis(editor.document, undefined, undefined, context);
+			}
+		}
+	});
 }
 
 function onDidScrollWebView(line: number) {
