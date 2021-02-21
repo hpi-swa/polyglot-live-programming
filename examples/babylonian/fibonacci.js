@@ -1,4 +1,4 @@
-// <Example :name="two" n="2" />
+// <Example :name="three_2" n="3" />
 // <Example :name="four" n="4" />
 function fibonacci(n) {
     if (n === 0) {

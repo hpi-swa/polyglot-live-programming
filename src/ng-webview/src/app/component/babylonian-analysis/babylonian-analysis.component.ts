@@ -11,7 +11,7 @@ import { BabylonExample, BabylonRow } from 'src/app/model/babylon.model';
     templateUrl: './babylonian-analysis.component.html',
     styleUrls: ['./babylonian-analysis.component.css']
 })
-export class BabylonianAnalysisComponent implements OnInit  {
+export class BabylonianAnalysisComponent implements OnInit {
     public textArea: string = 'webViewText';
     public editorConfig: Array<string>;
     result: Array<BabylonExample>;
@@ -22,14 +22,28 @@ export class BabylonianAnalysisComponent implements OnInit  {
         this.babylonService.getResultMap().subscribe((value) => this.result = value);
         this.communicationService.getEditorConfig().subscribe((value) => {
             this.editorConfig = value;
-            this.babylonService.waitForElement('container', this.editorConfig, function () {
-                document.getElementById(arguments[0]).style.fontFamily = arguments[1][0];
-                document.getElementById(arguments[0]).style.fontSize = arguments[1][1] + 'px';
-                Array.from(document.getElementsByClassName('paragraph')).forEach(element => {
-                    ((element) as HTMLElement).style.fontSize = arguments[1][1] + 'px';
+            
+            if (value.length > 1) {
+                this.buildStyleMap();
+                this.babylonService.waitForElement('container', this.babylonService, function () {
+                    Array.from(document.getElementsByClassName('paragraph')).forEach(element => {
+                        arguments[1].setFontStyles(element);
+                    });
                 });
-            });
+            }
+
         });
+    }
+
+    private buildStyleMap() {
+        let lineHeight = parseInt(this.editorConfig[1]) * 1.5;
+        this.babylonService.styleMap = new Map();
+        this.babylonService.styleMap.set('fontFamily', this.editorConfig[0]);
+        this.babylonService.styleMap.set('fontSize', this.editorConfig[1] + 'px');
+        this.babylonService.styleMap.set('fontWeigth', 'normal');
+        this.babylonService.styleMap.set('letterSpacing', '0px');
+        this.babylonService.styleMap.set('fontFeatureSettings', 'liga:0, calt:0');
+        this.babylonService.styleMap.set('lineHeight', lineHeight.toString() + 'px');
     }
 }
 

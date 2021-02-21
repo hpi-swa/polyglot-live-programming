@@ -175,6 +175,9 @@ function sendResultsToWebView(result: Array<ba.AbstractProbe>, panelView: vscode
 			result: result,
 			scroll: texteditor.visibleRanges
 		});
+		panelView.webview.postMessage({
+			editorConfig: getEditorConfig()
+		});
 	}
 }
 

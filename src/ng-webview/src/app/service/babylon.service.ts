@@ -13,6 +13,7 @@ export class BabylonService {
   private background: string = " ";
   private resultMap: BehaviorSubject<Array<BabylonExample>>;
   public colorList: Array<string> = ['orange','blue','red','green','purple'];
+  public styleMap: Map<string, string>;
 
   constructor(private communicationService: CommunicationService) {
     this.resultMap = new BehaviorSubject<Array<BabylonExample>>(new Array<BabylonExample>());
@@ -84,5 +85,14 @@ export class BabylonService {
         this.waitForElement(elementId, initialValue, callBack);
       }
     }, 500);
+  }
+
+  public setFontStyles(element: HTMLElement) {
+    element.style.fontFamily = this.styleMap.get('fontFamily');
+    element.style.fontSize = this.styleMap.get('fontSize');
+    element.style.fontWeight = this.styleMap.get('fontWeight');
+    element.style.letterSpacing = this.styleMap.get('letterSpacing');
+    element.style.fontFeatureSettings = this.styleMap.get('fontFeatureSettings');
+    element.style.lineHeight = this.styleMap.get('lineHeight');
   }
 }

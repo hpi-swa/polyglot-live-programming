@@ -1,3 +1,4 @@
+// <Example :name="test_2" array="[9,8,10,5]" />
 // <Example :name="test_insertionSort" array="[6, 1, 4, 2]" />
 function insertionSort(array) {
     for (let i = 1; i < array.length; i++) {
