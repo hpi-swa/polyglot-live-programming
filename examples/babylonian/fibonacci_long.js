@@ -1,10 +1,6 @@
+// <Example :name="four" n="4" />
+// <Example :name="three" n="3" />
 // <Example :name="five" n="5" />
-// <Example :name="four1" n="4" />
-// <Example :name="four2" n="4" />
-// <Example :name="four3" n="4" />
-// <Example :name="four5" n="4" />
-// <Example :name="four6" n="4" />
-// <Example :name="four7" n="4" />
 function fibonacci(n) {
     if (n === 0) {
         return 0;

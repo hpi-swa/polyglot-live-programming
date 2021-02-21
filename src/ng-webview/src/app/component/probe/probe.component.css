@@ -111,9 +111,14 @@
     float: right;
     top: 15px;
     right: 0px;
+    left: 100px;
     color: #ccc;
     cursor: move;
     width: 24px;
     height: 24px;
     display: contents;
   }
+
+  .selected{
+    box-shadow: 0 0 0 99999px rgba(0, 0, 0, .5);
+}

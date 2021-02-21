@@ -85,7 +85,7 @@ function handleBabylonianAnalysisResult(result: ba.BabylonianAnalysisResult, isF
 			for (const probe of file.probes) {
 				const decorationType = DECORATIONS.getDecorationType(file.uri, isFinal, probe);
 				const decorationOptions = createDecorationOptions(editor, isFinal, file, probe);
-				editor.setDecorations(decorationType, [decorationOptions]);
+				//editor.setDecorations(decorationType, [decorationOptions]);
 				resultsArray.push(probe);
 			}
 			if (context && !panel) {
@@ -141,6 +141,9 @@ export function buildPanel(context: ExtensionContext) {
 		}
 		if (e.editLine) {
 			onDidWebviewInputChange(e.editLine, e.line);
+		}
+		if (e.lineNr && e.value && e.name) {
+			onAddExample(e.lineNr, e.name, e.value);
 		}
 	}, undefined, context.subscriptions);
 	panelView.webview.postMessage({
@@ -203,6 +206,19 @@ function onDidWebviewInputChange(editLine: string, line: number) {
 		editors[0].edit(editBuilder => {
 			var firstLine = editors[0].document.lineAt(line - 1);
 			editBuilder.replace(new vscode.Range(firstLine.range.start, firstLine.range.end), editLine);
+		}).then(x => {
+			editors[0].document.save();
+		});
+	}
+}
+
+function onAddExample(lineNr: number, name: string, value: string) {
+	const editors = vscode.window.visibleTextEditors;
+	if (editors[0]) {
+		editors[0].edit(editBuilder => {
+			let valueWrapper = editors[0].document.lineAt(lineNr-1)._text.match(/(:)*[^(\"|\'|\s)]+=(\"|\')[^(\"|\')]+(\"|\')/g)[1].split('"')[0];
+			let newExample = '// <Example :name=' + '"' + name + '"' + " " + valueWrapper + '"' + value + '"' + " />\n";
+			editBuilder.insert(new vscode.Position(lineNr-1, 0), newExample);
 		}).then(x => {
 			editors[0].document.save();
 		});

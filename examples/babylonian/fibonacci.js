@@ -1,4 +1,4 @@
-// <Example :name="five" n="5" />
+// <Example :name="two" n="2" />
 // <Example :name="four" n="4" />
 function fibonacci(n) {
     if (n === 0) {
@@ -11,7 +11,8 @@ function fibonacci(n) {
     } 
 }
 
-// <Example :name="six" n="6" />
+// <Example :name="three" n="3" />
+// <Example :name="five" n="5" />
 function fibonacciIterative(n) {
     let x = 0;
     let y = 1;

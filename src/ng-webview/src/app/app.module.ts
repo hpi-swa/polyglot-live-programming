@@ -5,25 +5,26 @@ import { AppComponent } from './app.component';
 import { RouterModule } from '@angular/router';
 import { BabylonianAnalysisComponent } from './component/babylonian-analysis/babylonian-analysis.component';
 import { MatSliderModule } from '@angular/material/slider';
-import {MatSelectModule} from '@angular/material/select';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations'; 
+import { MatSelectModule } from '@angular/material/select';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { CommunicationService } from './service/communication.service';
 import { ExampleComponent } from './component/example/example.component';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import {FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {MatCheckboxModule} from '@angular/material/checkbox';
-import {MatIconModule} from '@angular/material/icon';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatIconModule } from '@angular/material/icon';
 import { ProbeComponent } from './component/probe/probe.component';
 import { BabylonExampleComponent } from './component/babylon-example/babylon-example.component';
-import {MatInputModule} from '@angular/material/input';
+import { MatInputModule } from '@angular/material/input';
 import { AssertionComponent } from './component/assertion/assertion.component';
 import { DragDropModule } from '@angular/cdk/drag-drop';
+import { ExampleCreatorComponent } from './component/example-creator/example-creator.component';
 
 
 
 
 @NgModule({
-  declarations: [AppComponent, BabylonianAnalysisComponent, ExampleComponent, ProbeComponent, BabylonExampleComponent, AssertionComponent],
+  declarations: [AppComponent, BabylonianAnalysisComponent, ExampleComponent, ProbeComponent, BabylonExampleComponent, AssertionComponent, ExampleCreatorComponent, ExampleCreatorComponent],
   imports: [
     BrowserModule,
     RouterModule.forRoot([], { useHash: true }),
@@ -41,4 +42,4 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
   providers: [CommunicationService],
   bootstrap: [AppComponent],
 })
-export class AppModule {}
+export class AppModule { }

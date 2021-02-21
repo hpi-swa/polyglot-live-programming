@@ -10,7 +10,7 @@ import { ScrollService } from './service/scroll.service';
   styleUrls: ['./app.component.css'],
 })
 export class AppComponent implements OnInit {
-  title = 'Hans';
+  title = 'Polyglot-Live-Programming-UI';
   
   constructor(private communicationService: CommunicationService, private scrollService: ScrollService, private babylonService: BabylonService) { }
 

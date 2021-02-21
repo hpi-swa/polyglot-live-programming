@@ -18,11 +18,13 @@ export class ExampleComponent implements OnInit {
   inputs: Map<string, string>;
   selected: string;
   result: string;
+  lineNr: number;
 
 
   constructor(private babylonService: BabylonService) { }
 
   ngOnInit(): void {
+    this.lineNr = this.babylon.line;
     this.name = this.babylon.examples[0].exampleName;
     this.inputs = this.getInitalValues();
     this.result = this.babylon.examples[0].observedValues[0].displayString;
@@ -30,10 +32,10 @@ export class ExampleComponent implements OnInit {
 
   private toText() {
     var exampleText = '// <Example';
+    exampleText = exampleText.concat(' :name="' + this.name + '" ');
     this.inputs.forEach((value, key) => {
-      exampleText = exampleText.concat('  ' + key + '="' + value + '" ');
+      exampleText = exampleText.concat(key + '="' + value + '"');
     });
-    exampleText = exampleText.concat('  :name="' + this.name + '" ');
     return exampleText.concat(' />');
   }
 
