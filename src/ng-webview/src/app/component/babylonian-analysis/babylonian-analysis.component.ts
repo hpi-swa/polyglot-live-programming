@@ -27,7 +27,7 @@ export class BabylonianAnalysisComponent implements OnInit {
                 this.buildStyleMap();
                 this.babylonService.waitForElement('container', this.babylonService, function () {
                     Array.from(document.getElementsByClassName('paragraph')).forEach(element => {
-                        arguments[1].setFontStyles(element);
+                        //arguments[1].setFontStyles(element);
                     });
                 });
             }
@@ -36,14 +36,19 @@ export class BabylonianAnalysisComponent implements OnInit {
     }
 
     private buildStyleMap() {
-        let lineHeight = parseInt(this.editorConfig[1]) * 1.5;
         this.babylonService.styleMap = new Map();
-        this.babylonService.styleMap.set('fontFamily', this.editorConfig[0]);
-        this.babylonService.styleMap.set('fontSize', this.editorConfig[1] + 'px');
-        this.babylonService.styleMap.set('fontWeigth', 'normal');
-        this.babylonService.styleMap.set('letterSpacing', '0px');
-        this.babylonService.styleMap.set('fontFeatureSettings', 'liga:0, calt:0');
-        this.babylonService.styleMap.set('lineHeight', lineHeight.toString() + 'px');
+        if (this.editorConfig[0]) {
+            this.babylonService.styleMap.set('font-family', this.editorConfig[0]);
+
+        }
+        if (this.editorConfig[1]) {
+            let lineHeight = parseInt(this.editorConfig[1]) * 1.5;
+            this.babylonService.styleMap.set('font-size', this.editorConfig[1] + 'px');
+            this.babylonService.styleMap.set('line-height', lineHeight.toString() + 'px');
+        }
+        this.babylonService.styleMap.set('font-weight', 'normal');
+        this.babylonService.styleMap.set('letter-spacing', '0px');
+        this.babylonService.styleMap.set('font-feature-settings', 'liga:0, calt:0');
     }
 }
 

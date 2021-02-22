@@ -30,6 +30,7 @@ export class ProbeComponent implements OnChanges, OnInit {
   public leadingWhitespaces: string;
 
   public leftMargin: string;
+  public fontStyle: string;
 
   private sliderActionCounter: number;
 
@@ -81,7 +82,7 @@ export class ProbeComponent implements OnChanges, OnInit {
       if (currentActionCounter === this.sliderActionCounter) {
         this.showSlider = false;
       }
-    }, 4000);
+    }, 3500);
   }
 
   // Mouseover
@@ -135,11 +136,13 @@ export class ProbeComponent implements OnChanges, OnInit {
   private formatText() {
     let spaces = '';
     let txt = '';
-    Array.from(this.babylon.text).forEach(c => {
-      if (c === ' ') {
+    for (let i = 0; i < this.babylon.text.length; i++) {
+      if (this.babylon.text.charAt(i) === ' ') {
         spaces = spaces.concat(' ');
+      } else {
+        break;
       }
-    });
+    }
     txt = this.babylon.text.trim();
     this.lineText = txt;
     this.babylon.text = txt;
@@ -155,9 +158,29 @@ export class ProbeComponent implements OnChanges, OnInit {
     this.renderer.appendChild(document.body, marginHelper);
 
     const helper = document.getElementById('marginHelper');
+    helper.style.fontFamily = this.babylonService.styleMap.get('font-family');
+    helper.style.fontSize = this.babylonService.styleMap.get('font-size');
     const width = helper.offsetWidth;
 
+    console.log("Number of whitespace", this.leadingWhitespaces.length);
     this.renderer.removeChild(document.body, marginHelper);
     return (this.leadingWhitespaces.length * width).toString();
+  }
+
+  public getFontStyles() {
+    var newMap = new Map(this.babylonService.styleMap);
+    newMap.set('margin-left', this.leftMargin);
+    return newMap;
+  }
+
+  public greyOutBackground() {
+    let intensity = 0.2 / this.probeValues.size;
+    let greyOutEffectStyles = {
+      'transition': 'box-shadow 200ms cubic-bezier(0, 0, 0.2, 1)',
+      'box-shadow': '0 0 0 99999px rgba(0, 0, 0,'.concat(intensity.toString()).concat(')'),
+      'border-radius': '25px',
+      'margin-left': this.leftMargin
+    };
+    return greyOutEffectStyles;
   }
 }

@@ -1,7 +1,7 @@
 <div id="assertion_container" [ngStyle]="{'margin-left': leftMargin}">
     <span>
         <span *ngFor="let example of selectedValues | keyvalue">
-            <span style="white-space: pre;"> {{ leadingWhitespaces }} </span>
+            <span [ngStyle]="getFontStyles()" style="white-space: pre;"> {{ leadingWhitespaces }} </span>
             <span *ngIf="example.value === 'true'" class="arrow-highlight-success"> {{ example.key }}: {{ example.value }}</span>
             <span *ngIf="example.value === 'false'" class="arrow-highlight-fail"> {{ example.key }}: {{ example.value }}</span>
         </span>

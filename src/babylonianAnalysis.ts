@@ -43,6 +43,7 @@ let panel: vscode.WebviewPanel | null = null;
 let webviewLine: number = 0;
 let webviewIsScrolling: boolean = false;
 let triggeredByTextEditorChange: boolean;
+let previousEditor: vscode.TextEditor;
 
 
 export function initializeBabylonianAnalysis(context: vscode.ExtensionContext, graalVMExtension: vscode.Extension<GraalVMExtension>, uriHandler: UriHandler) {
@@ -65,8 +66,6 @@ export function initializeBabylonianAnalysis(context: vscode.ExtensionContext, g
 					scroll: visibleRanges
 				});
 			}
-		} else {
-			vscode.window.showInformationMessage("Panel is null");
 		}
 	}));
 }
@@ -185,7 +184,8 @@ function onDidChangeActiveTextEditorHandler(context: vscode.ExtensionContext) {
 	vscode.window.onDidChangeActiveTextEditor(e => {
 		if (context && isEnabled) {
 			const editor = vscode.window.activeTextEditor;
-			if (editor && containsExemplifiedCode(editor.document)) {
+			if (editor && containsExemplifiedCode(editor.document) && editor !== previousEditor) {
+				previousEditor = editor;
 				requestBabylonianAnalysis(editor.document, undefined, undefined, context);
 			}
 		}

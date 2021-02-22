@@ -3,7 +3,7 @@
         <li *ngFor="let obj of examples" class="row">
             <div class="textcontainer">
                 <span class="exampleBox">
-                    <mat-checkbox color="orange" class="exampleCheckbox" [(ngModel)]="obj.selected" (ngModelChange)="updateSelected()" [disabled]="obj.disabled"></mat-checkbox>
+                    <mat-checkbox class="exampleCheckbox" [(ngModel)]="obj.selected" (ngModelChange)="updateSelected()" [disabled]="obj.disabled"></mat-checkbox>
                     <example [babylon]="obj.example" [color]="obj.color"></example>
                 </span>
             </div>
@@ -15,6 +15,6 @@
         <probe *ngIf="r.probeType && r.probeType.valueOf() === 'PROBE'" [babylon]="r" [selectedExamples]="selected"></probe>
         <assertion *ngIf="r.probeType && r.probeType.valueOf() === 'ASSERTION'" [babylon]="r" [selectedExamples]="selected"></assertion>
         <span *ngIf="!r.probeType || ( r.probeType.valueOf() !== 'EXAMPLE' && r.probeType.valueOf() !== 'PROBE'  && r.probeType.valueOf() !== 'ASSERTION')"
-            class="paragraph background">{{ r.text }}</span>
+            [ngStyle]="babylonService.styleMap" class="paragraph background">{{ r.text }}</span>
     </div>
 </div>

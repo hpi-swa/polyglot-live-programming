@@ -3,6 +3,7 @@ import { Input, OnChanges, SimpleChanges } from '@angular/core';
 import { Component, OnInit } from '@angular/core';
 import { BabylonRow } from 'src/app/model/babylon.model';
 import { SelectedExampleWrapper } from 'src/app/model/helper.model';
+import { BabylonService } from 'src/app/service/babylon.service';
 import { ExampleResult } from '../../../../../babylonianAnalysisTypes';
 
 @Component({
@@ -24,7 +25,7 @@ export class AssertionComponent implements  OnChanges, OnInit {
   public leadingWhitespaces: string;
   public leftMargin: string;
 
-  constructor(private renderer: Renderer2) { }
+  constructor(private renderer: Renderer2, private babylonService: BabylonService) { }
 
   ngOnInit(): void {
     this.formatText();
@@ -32,6 +33,10 @@ export class AssertionComponent implements  OnChanges, OnInit {
     this._observedValues = this.extractObservedValues();
     this.selectExamples();
     this.initialized = true;
+  }
+
+  public getFontStyles() {
+    return this.babylonService.styleMap;
   }
 
   ngOnChanges(changes: SimpleChanges): void {

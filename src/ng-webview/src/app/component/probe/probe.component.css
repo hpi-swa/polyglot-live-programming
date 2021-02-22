@@ -3,6 +3,18 @@
   margin-top: -1em;
 }
 
+.example-handle {
+  float  : right;
+  top    : 15px;
+  right  : 0px;
+  left   : 100px;
+  color  : rgb(56, 54, 54);
+  cursor : move;
+  width  : 24px;
+  height : 24px;
+  display: contents;
+}
+
 .background {
   white-space: pre-wrap;
   opacity    : 0.3;
@@ -13,28 +25,9 @@
   margin-block-end  : 0;
 }
 
-.highlight {
-  background       : url(https://www.andyhooke.co.uk/wp-content/uploads/2018/02/yellow-brushstroke.png);
-  background-repeat: no-repeat;
-  background-size  : 100% 95%;
-  padding          : 8px 0;
-}
-
 .text {
   padding-top: 0.85em;
 }
-
-/* :host ::ng-deep .max .mat-slider-thumb {
-    background-color: orange;
-}
-
-:host ::ng-deep .max .mat-slider-thumb-label {
-    background-color: orange;
-}
-
-:host ::ng-deep .max .mat-slider-track-fill {
-    background-color: orange;
-} */
 
 #probe_container:hover {
   -webkit-transform: scale(1.6);
@@ -57,6 +50,7 @@
   padding: 0.03em 0.25em;
 }
 
+/* Predefined Slider Color Themes */
 .slider-bg-orange-1 ::ng-deep .max .mat-slider-thumb {
   background-color: orange;
 }
@@ -65,8 +59,14 @@
   background-color: orange;
 }
 
-.slider-bg-orange-3 ::ng-deep .max .mat-slider-track-fill {
+.slider-bg-orange-3 ::ng-deep .mat-slider.mat-slider-horizontal .mat-slider-track-fill {
+  height          : 100%;
   background-color: orange;
+}
+
+.slider-bg-orange-4 ::ng-deep .mat-slider.mat-slider-horizontal .mat-slider-track-background {
+  height          : 100%;
+  background-color: rgba(138, 137, 136, 0.639);
 }
 
 .slider-bg-blue-1 ::ng-deep .max .mat-slider-thumb {
@@ -77,8 +77,14 @@
   background-color: blue;
 }
 
-.slider-bg-blue-3 ::ng-deep .max .mat-slider-track-fill {
+.slider-bg-blue-3 ::ng-deep .mat-slider.mat-slider-horizontal .mat-slider-track-fill {
+  height          : 100%;
   background-color: blue;
+}
+
+.slider-bg-blue-4 ::ng-deep .mat-slider.mat-slider-horizontal .mat-slider-track-background {
+  height          : 100%;
+  background-color: rgba(138, 137, 136, 0.639);
 }
 
 .slider-bg-red-1 ::ng-deep .max .mat-slider-thumb {
@@ -89,8 +95,14 @@
   background-color: red;
 }
 
-.slider-bg-red-3 ::ng-deep .max .mat-slider-track-fill {
+.slider-bg-red-3 ::ng-deep .mat-slider.mat-slider-horizontal .mat-slider-track-fill {
+  height          : 100%;
   background-color: red;
+}
+
+.slider-bg-red-4 ::ng-deep .mat-slider.mat-slider-horizontal .mat-slider-track-background {
+  height          : 100%;
+  background-color: rgba(138, 137, 136, 0.639);
 }
 
 .slider-bg-green-1 ::ng-deep .max .mat-slider-thumb {
@@ -101,8 +113,14 @@
   background-color: green;
 }
 
-.slider-bg-green-2 ::ng-deep .max .mat-slider-track-fill {
+.slider-bg-green-3 ::ng-deep .mat-slider.mat-slider-horizontal .mat-slider-track-fill {
+  height          : 100%;
   background-color: green;
+}
+
+.slider-bg-green-4 ::ng-deep .mat-slider.mat-slider-horizontal .mat-slider-track-background {
+  height          : 100%;
+  background-color: rgba(138, 137, 136, 0.639);
 }
 
 .slider-bg-purple-1 ::ng-deep .max .mat-slider-thumb {
@@ -113,24 +131,12 @@
   background-color: purple;
 }
 
-.slider-bg-purple-3 ::ng-deep .max .mat-slider-track-fill {
+.slider-bg-purple-3 ::ng-deep .mat-slider.mat-slider-horizontal .mat-slider-track-fill {
+  height          : 100%;
   background-color: purple;
 }
 
-.example-handle {
-  float  : right;
-  top    : 15px;
-  right  : 0px;
-  left   : 100px;
-  color  : rgb(56, 54, 54);
-  cursor : move;
-  width  : 24px;
-  height : 24px;
-  display: contents;
-}
-
-.selected {
-  transition   : box-shadow 200ms cubic-bezier(0, 0, 0.2, 1);
-  box-shadow   : 0 0 0 99999px rgba(0, 0, 0, .2);
-  border-radius: 25px;
+.slider-bg-purple-4 ::ng-deep .mat-slider.mat-slider-horizontal .mat-slider-track-background {
+  height          : 100%;
+  background-color: rgba(138, 137, 136, 0.639);
 }

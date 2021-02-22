@@ -65,4 +65,8 @@ export class ExampleComponent implements OnInit {
     return inputs;
   }
 
+  public getFontStyles() {
+    return this.babylonService.styleMap;
+  }
+
 }

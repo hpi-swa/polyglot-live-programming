@@ -1,14 +1,14 @@
 <div id="probe_container" (mouseover)="displaySlider()" (mouseout)="hideSlider()">
     <div *ngIf="showSlider===true" class="slidercontainer" id="slidercontainer{{ babylon.line }}">
         <div *ngFor="let example of probeValues | keyvalue">
-            <div [ngClass]="['slider-bg-' + example.value.color + '-1', 'slider-bg-' + example.value.color + '-2', 'slider-bg-' + example.value.color + '-3']"
+            <div [ngClass]="['slider-bg-' + example.value.color + '-1', 'slider-bg-' + example.value.color + '-2', 'slider-bg-' + example.value.color + '-3', 'slider-bg-' + example.value.color + '-4']"
                 cdkDrag (cdkDragReleased)="drop(example.value.color, babylon.line)">
                 <span id="slider_span_{{ example.value.color }}{{ babylon.line }}"
                     [ngStyle]="{'margin-left': leftMargin}"></span>
-                <div [ngStyle]="{'margin-left': leftMargin}" class="selected">
+                <div [ngStyle]="greyOutBackground()">
                     <mat-slider class="max" *ngIf="example.value.max > 1"
-                        [id]="'slider_' + example.value.color + babylon.line" [style.marginBottom]="'-1.25em'"
-                        [style.marginTop]="'-0.5em'" thumbLabel [displayWith]="updateSliderLabel"
+                        [id]="'slider_' + example.value.color + babylon.line" [style.marginBottom]="'-1em'"
+                        [style.marginTop]="'-1em'" thumbLabel [displayWith]="updateSliderLabel"
                         [value]="example.value.defaultValue" (input)="onSliderChange($event, example.key)"
                         tickInterval="0" min="1" max="{{ example.value.max }}">
                     </mat-slider>
@@ -16,7 +16,7 @@
                         example.key
                         }}:
                     </span>
-                    <span class="text" id="{{ example.value.sliderTextFieldId }}">{{
+                    <span class="text" [style.marginLeft]="'10px'" id="{{ example.value.sliderTextFieldId }}">{{
                         example.value.textInput }}</span>
                     <div class="example-handle" cdkDragHandle>
                         <svg width="10px" fill="currentColor" viewBox="0 0 24 24">
@@ -31,5 +31,5 @@
         </div>
     </div>
     <span id="background{{ babylon.line }}" *ngIf="showSlider===false" class="border-highlight background paragraph"
-        [ngStyle]="{'margin-left': leftMargin}">{{ lineText }}</span>
+        [ngStyle]="getFontStyles()">{{ lineText }}</span>
 </div>

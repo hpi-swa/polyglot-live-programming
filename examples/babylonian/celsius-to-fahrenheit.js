@@ -1,4 +1,5 @@
 // <Example :name="warm" celsius="30" />
+// <Example :name="very cold" celsius="-30" />
 // <Example :name="cold" celsius="-10" />
 function celsiusToFahrenheit(celsius) {
     // <Probe :expression="celsius * Math.random()" />
