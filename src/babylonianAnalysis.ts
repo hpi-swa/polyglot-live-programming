@@ -8,7 +8,7 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { pathToFileURL, URLSearchParams } from 'url';
+import { URLSearchParams } from 'url';
 import * as ba from './babylonianAnalysisTypes';
 import { DecorationManager } from './babylonianAnalysisDecorations';
 import { updateObjectExplorer } from './objectExplorer';
@@ -18,7 +18,7 @@ import * as utils from './utils';
 import table from 'markdown-table';
 import { GraalVMExtension } from './@types/graalvm';
 import { readFileSync } from 'fs';
-import { ExtensionContext, window, ViewColumn, Uri } from 'vscode';
+import { ExtensionContext, Uri } from 'vscode';
 import { watch } from 'fs';
 import { join } from 'path';
 import { environment } from './ng-webview/src/environments/environment';
@@ -111,17 +111,13 @@ export function buildPanel(context: ExtensionContext) {
 
 	const matchLinks = /(href|src)="([^"]*)"/g;
 	const toUri = (_: any, prefix: 'href' | 'src', link: string) => {
-		// For <base href="#" />
 		if (link === '#') {
 			return `${prefix}="${link}"`;
 		}
-		// For scripts & links
 		const path = join(context.extensionPath, 'out/ng-webview', link);
 		const uri = Uri.file(path);
 		return `${prefix}="${panelView.webview['asWebviewUri'](uri)}"`;
 	};
-
-	// Refresh the webview on update from the code
 	const updateWebview = async () => {
 		const html = readFileSync(index, 'utf-8');
 		panelView.webview.html = html.replace(matchLinks, toUri);
@@ -219,9 +215,9 @@ function onAddExample(lineNr: number, name: string, value: string) {
 	const editors = vscode.window.visibleTextEditors;
 	if (editors[0]) {
 		editors[0].edit(editBuilder => {
-			let valueWrapper = editors[0].document.lineAt(lineNr-1)._text.match(/(:)*[^(\"|\'|\s)]+=(\"|\')[^(\"|\')]+(\"|\')/g)[1].split('"')[0];
+			let valueWrapper = editors[0].document.lineAt(lineNr - 1)._text.match(/(:)*[^(\"|\'|\s)]+=(\"|\')[^(\"|\')]+(\"|\')/g)[1].split('"')[0];
 			let newExample = '// <Example :name=' + '"' + name + '"' + " " + valueWrapper + '"' + value + '"' + " />\n";
-			editBuilder.insert(new vscode.Position(lineNr-1, 0), newExample);
+			editBuilder.insert(new vscode.Position(lineNr - 1, 0), newExample);
 		}).then(x => {
 			editors[0].document.save();
 		});

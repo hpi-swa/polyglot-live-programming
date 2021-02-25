@@ -1,9 +1,15 @@
+/*
+ * Copyright (c) 2021, Software Architecture Group, Hasso Plattner Institute.
+ *
+ * Licensed under the MIT License.
+ */
+
 import { Input, ViewChild } from '@angular/core';
 import { Component, OnInit } from '@angular/core';
 import { MatSlider, MatSliderChange } from '@angular/material/slider';
 import { BabylonRow } from 'src/app/model/babylon.model';
 import { BabylonService } from 'src/app/service/babylon.service';
-import { Renderer2, RendererFactory2 } from '@angular/core';
+import { Renderer2 } from '@angular/core';
 import { SimpleChanges } from '@angular/core';
 import { ExampleResult } from '../../../../../babylonianAnalysisTypes';
 import { OnChanges } from '@angular/core';
@@ -81,6 +87,9 @@ export class ProbeComponent implements OnChanges, OnInit {
     setTimeout(() => {
       if (currentActionCounter === this.sliderActionCounter) {
         this.showSlider = false;
+        this.probeValues.forEach(e => {
+          this.babylonService.activeSliders.delete('slider_'.concat(e.color).concat(this.babylon.line.toString()));
+        });
       }
     }, 3500);
   }
@@ -88,6 +97,9 @@ export class ProbeComponent implements OnChanges, OnInit {
   // Mouseover
   public displaySlider() {
     this.sliderActionCounter++;
+    this.probeValues.forEach(e => {
+      this.babylonService.activeSliders.set('slider_'.concat(e.color).concat(this.babylon.line.toString()), "true");
+    });
     this.showSlider = true;
   }
 
@@ -162,7 +174,6 @@ export class ProbeComponent implements OnChanges, OnInit {
     helper.style.fontSize = this.babylonService.styleMap.get('font-size');
     const width = helper.offsetWidth;
 
-    console.log("Number of whitespace", this.leadingWhitespaces.length);
     this.renderer.removeChild(document.body, marginHelper);
     return (this.leadingWhitespaces.length * width).toString();
   }
@@ -177,9 +188,10 @@ export class ProbeComponent implements OnChanges, OnInit {
     let intensity = 0.2 / this.probeValues.size;
     let greyOutEffectStyles = {
       'transition': 'box-shadow 200ms cubic-bezier(0, 0, 0.2, 1)',
-      'box-shadow': '0 0 0 99999px rgba(0, 0, 0,'.concat(intensity.toString()).concat(')'),
+      'box-shadow': '0 0 0 9999px rgba(0, 0, 0,'.concat(intensity.toString()).concat(')'),
       'border-radius': '25px',
-      'margin-left': this.leftMargin
+      'margin-left': this.leftMargin,
+      'background': '#ffffff'
     };
     return greyOutEffectStyles;
   }

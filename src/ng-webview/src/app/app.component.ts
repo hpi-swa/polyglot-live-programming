@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2021, Software Architecture Group, Hasso Plattner Institute.
+ *
+ * Licensed under the MIT License.
+ */
+
 import { Component, OnInit } from '@angular/core';
 import { vscode } from 'src/constant';
 import { BabylonService } from './service/babylon.service';

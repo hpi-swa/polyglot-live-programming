@@ -1,5 +1,10 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+/*
+ * Copyright (c) 2021, Software Architecture Group, Hasso Plattner Institute.
+ *
+ * Licensed under the MIT License.
+ */
 
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ExampleCreatorComponent } from './example-creator.component';
 
 describe('ExampleCreatorComponent', () => {
@@ -8,9 +13,9 @@ describe('ExampleCreatorComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ExampleCreatorComponent ]
+      declarations: [ExampleCreatorComponent]
     })
-    .compileComponents();
+      .compileComponents();
   });
 
   beforeEach(() => {

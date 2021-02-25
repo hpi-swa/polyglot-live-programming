@@ -10,8 +10,7 @@ function fibonacci(n) {
     } 
 }
 
-// <Example :name="three_123" n="3" />
-// <Example :name="five_123" n="5" />
+// <Example :name="three" n="3" />
 function fibonacciIterative(n) {
     let x = 0;
     let y = 1;

@@ -1,6 +1,10 @@
-import { Component, OnInit } from '@angular/core';
-import { MatSliderChange } from '@angular/material/slider';
+/*
+ * Copyright (c) 2021, Software Architecture Group, Hasso Plattner Institute.
+ *
+ * Licensed under the MIT License.
+ */
 
+import { Component, OnInit } from '@angular/core';
 import { CommunicationService } from 'src/app/service/communication.service';
 import { BabylonService } from 'src/app/service/babylon.service';
 import { BabylonExample, BabylonRow } from 'src/app/model/babylon.model';
@@ -22,14 +26,8 @@ export class BabylonianAnalysisComponent implements OnInit {
         this.babylonService.getResultMap().subscribe((value) => this.result = value);
         this.communicationService.getEditorConfig().subscribe((value) => {
             this.editorConfig = value;
-            
             if (value.length > 1) {
                 this.buildStyleMap();
-                this.babylonService.waitForElement('container', this.babylonService, function () {
-                    Array.from(document.getElementsByClassName('paragraph')).forEach(element => {
-                        //arguments[1].setFontStyles(element);
-                    });
-                });
             }
 
         });

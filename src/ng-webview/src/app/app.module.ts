@@ -1,6 +1,11 @@
+/*
+ * Copyright (c) 2021, Software Architecture Group, Hasso Plattner Institute.
+ *
+ * Licensed under the MIT License.
+ */
+
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-
 import { AppComponent } from './app.component';
 import { RouterModule } from '@angular/router';
 import { BabylonianAnalysisComponent } from './component/babylonian-analysis/babylonian-analysis.component';

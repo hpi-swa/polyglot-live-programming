@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2021, Software Architecture Group, Hasso Plattner Institute.
+ *
+ * Licensed under the MIT License.
+ */
+
 import { ExampleResult, ProbeType } from "../../../../babylonianAnalysisTypes";
 
 export class BabylonRow {
@@ -17,6 +23,6 @@ export class BabylonExample {
         this.startLine = startLine;
         this.examples = new Array();
         this.rows = new Array();
-      }
-    
+    }
+
 }

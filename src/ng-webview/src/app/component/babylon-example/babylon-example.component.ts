@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2021, Software Architecture Group, Hasso Plattner Institute.
+ *
+ * Licensed under the MIT License.
+ */
+
 import { Input } from '@angular/core';
 import { Component, OnInit } from '@angular/core';
 import { BabylonExample, BabylonRow } from 'src/app/model/babylon.model';
@@ -84,7 +90,6 @@ export class BabylonExampleComponent implements OnInit {
   }
 
   public getFontStyles() {
-    console.log('Styles', this.babylonService.styleMap);
     return this.babylonService.styleMap;
   }
 

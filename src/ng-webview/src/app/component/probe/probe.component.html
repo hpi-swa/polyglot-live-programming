@@ -1,3 +1,9 @@
+<!--
+ * Copyright (c) 2021, Software Architecture Group, Hasso Plattner Institute.
+ *
+ * Licensed under the MIT License.
+ -->
+ 
 <div id="probe_container" (mouseover)="displaySlider()" (mouseout)="hideSlider()">
     <div *ngIf="showSlider===true" class="slidercontainer" id="slidercontainer{{ babylon.line }}">
         <div *ngFor="let example of probeValues | keyvalue">
@@ -5,7 +11,8 @@
                 cdkDrag (cdkDragReleased)="drop(example.value.color, babylon.line)">
                 <span id="slider_span_{{ example.value.color }}{{ babylon.line }}"
                     [ngStyle]="{'margin-left': leftMargin}"></span>
-                <div [ngStyle]="greyOutBackground()">
+                <div [ngStyle]="greyOutBackground()"
+                    [id]="'sliderDiv_' + example.value.color + babylon.line.toString()">
                     <mat-slider class="max" *ngIf="example.value.max > 1"
                         [id]="'slider_' + example.value.color + babylon.line" [style.marginBottom]="'-1em'"
                         [style.marginTop]="'-1em'" thumbLabel [displayWith]="updateSliderLabel"
@@ -16,7 +23,7 @@
                         example.key
                         }}:
                     </span>
-                    <span class="text" [style.marginLeft]="'10px'" id="{{ example.value.sliderTextFieldId }}">{{
+                    <span class="text" [style.marginLeft]="'5px'" id="{{ example.value.sliderTextFieldId }}">{{
                         example.value.textInput }}</span>
                     <div class="example-handle" cdkDragHandle>
                         <svg width="10px" fill="currentColor" viewBox="0 0 24 24">
