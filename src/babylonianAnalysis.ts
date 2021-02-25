@@ -215,9 +215,15 @@ function onAddExample(lineNr: number, name: string, value: string) {
 	const editors = vscode.window.visibleTextEditors;
 	if (editors[0]) {
 		editors[0].edit(editBuilder => {
-			let valueWrapper = editors[0].document.lineAt(lineNr - 1)._text.match(/(:)*[^(\"|\'|\s)]+=(\"|\')[^(\"|\')]+(\"|\')/g)[1].split('"')[0];
-			let newExample = '// <Example :name=' + '"' + name + '"' + " " + valueWrapper + '"' + value + '"' + " />\n";
-			editBuilder.insert(new vscode.Position(lineNr - 1, 0), newExample);
+			let matches = editors[0].document.lineAt(lineNr - 1).text.match(/(:)*[^(\"|\'|\s)]+=(\"|\')[^(\"|\')]+(\"|\')/g);
+			if (matches) {
+				let valueWrapper = matches[1].split('"')[0];
+				let newExample = '// <Example :name=' + '"' + name + '"' + " " + valueWrapper + '"' + value + '"' + " />\n";
+				editBuilder.insert(new vscode.Position(lineNr - 1, 0), newExample);
+			} else {
+				console.log('Failed to create a new example ...');
+			}
+
 		}).then(x => {
 			editors[0].document.save();
 		});
