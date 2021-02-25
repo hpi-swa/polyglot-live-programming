@@ -33,6 +33,7 @@
 
 .text {
   padding-top: 0.85em;
+  color: black;
 }
 
 #probe_container:hover {
