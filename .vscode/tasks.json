@@ -4,21 +4,6 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "Watch",
-			"type": "npm",
-			"script": "watch",
-			"problemMatcher": "$tsc-watch",
-			"isBackground": true,
-			"presentation": {
-				"reveal": "never"
-			},
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			},
-			"dependsOn": "Build"
-		},
-		{
 			"label": "Build",
 			"type": "npm",
 			"script": "ngBuild"
@@ -75,6 +60,20 @@
 					}
 				}
 			}
+		}, {
+			"label": "Watch",
+			"type": "npm",
+			"script": "watch",
+			"problemMatcher": "$tsc-watch",
+			"isBackground": true,
+			"presentation": {
+				"reveal": "never"
+			},
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"dependsOn": "Build"
 		}
 	]
 }
