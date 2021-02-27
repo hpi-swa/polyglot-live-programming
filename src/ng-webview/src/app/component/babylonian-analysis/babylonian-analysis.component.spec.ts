@@ -1,5 +1,10 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+/*
+ * Copyright (c) 2021, Software Architecture Group, Hasso Plattner Institute.
+ *
+ * Licensed under the MIT License.
+ */
 
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { BabylonianAnalysisComponent } from './babylonian-analysis.component';
 
 describe('BabylonianAnalysisComponent', () => {

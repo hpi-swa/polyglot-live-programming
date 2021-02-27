@@ -1,57 +1,149 @@
+/*
+ * Copyright (c) 2021, Software Architecture Group, Hasso Plattner Institute.
+ *
+ * Licensed under the MIT License.
+ */
+
 .slidercontainer {
-    position  : relative;
-    margin-top: -1em;
+  position  : relative;
+  margin-top: -1em;
+}
+
+.example-handle {
+  float  : right;
+  top    : 15px;
+  right  : 0px;
+  left   : 100px;
+  color  : rgb(56, 54, 54);
+  cursor : move;
+  width  : 24px;
+  height : 24px;
+  display: contents;
 }
 
 .background {
-    white-space: pre-wrap;
-    opacity    : 0.3;
+  white-space: pre-wrap;
+  opacity    : 0.3;
 }
 
 .paragraph {
-    margin-block-start: -0.5em;
-    margin-block-end  : 0;
-}
-
-.highlight {
-    background       : url(https://www.andyhooke.co.uk/wp-content/uploads/2018/02/yellow-brushstroke.png);
-    background-repeat: no-repeat;
-    background-size  : 100% 95%;
-    padding          : 8px 0;
+  margin-block-start: -0.5em;
+  margin-block-end  : 0;
 }
 
 .text {
-    padding-top: 0.85em;
-}
-
-:host ::ng-deep .max .mat-slider-thumb {
-    background-color: orange;
-}
-
-:host ::ng-deep .max .mat-slider-thumb-label {
-    background-color: orange;
-}
-
-:host ::ng-deep .max .mat-slider-track-fill {
-    background-color: orange;
+  padding-top: 0.85em;
+  color: black;
 }
 
 #probe_container:hover {
-    -webkit-transform: scale(1.8);
-    transform        : scale(1.8);
+  -webkit-transform: scale(1.6);
+  transform        : scale(1.6);
+  transition       : all 0.5s ease 0s;
 }
 
 #probe_container {
-    -webkit-transition: 0.5s;
-    transition        : 0.5s;
+  -webkit-transition: 1s;
+  transition        : all 0.5s ease-in-out 3s;
 }
 
 .marginHelperClass {
-    display    : inline !important;
-    white-space: pre;
+  display    : inline !important;
+  white-space: pre;
 }
 
 .border-highlight {
-    border : 2px dashed orange;
-    padding: 0.03em 0.25em;
+  border : 3px dashed orange;
+  padding: 0.03em 0.25em;
+}
+
+/* Predefined Slider Color Themes */
+.slider-bg-orange-1 ::ng-deep .max .mat-slider-thumb {
+  background-color: orange;
+}
+
+.slider-bg-orange-2 ::ng-deep .max .mat-slider-thumb-label {
+  background-color: orange;
+}
+
+.slider-bg-orange-3 ::ng-deep .mat-slider.mat-slider-horizontal .mat-slider-track-fill {
+  height          : 100%;
+  background-color: orange;
+}
+
+.slider-bg-orange-4 ::ng-deep .mat-slider.mat-slider-horizontal .mat-slider-track-background {
+  height          : 100%;
+  background-color: rgba(138, 137, 136, 0.639);
+}
+
+.slider-bg-blue-1 ::ng-deep .max .mat-slider-thumb {
+  background-color: blue;
+}
+
+.slider-bg-blue-2 ::ng-deep .max .mat-slider-thumb-label {
+  background-color: blue;
+}
+
+.slider-bg-blue-3 ::ng-deep .mat-slider.mat-slider-horizontal .mat-slider-track-fill {
+  height          : 100%;
+  background-color: blue;
+}
+
+.slider-bg-blue-4 ::ng-deep .mat-slider.mat-slider-horizontal .mat-slider-track-background {
+  height          : 100%;
+  background-color: rgba(138, 137, 136, 0.639);
+}
+
+.slider-bg-red-1 ::ng-deep .max .mat-slider-thumb {
+  background-color: red;
+}
+
+.slider-bg-red-2 ::ng-deep .max .mat-slider-thumb-label {
+  background-color: red;
+}
+
+.slider-bg-red-3 ::ng-deep .mat-slider.mat-slider-horizontal .mat-slider-track-fill {
+  height          : 100%;
+  background-color: red;
+}
+
+.slider-bg-red-4 ::ng-deep .mat-slider.mat-slider-horizontal .mat-slider-track-background {
+  height          : 100%;
+  background-color: rgba(138, 137, 136, 0.639);
+}
+
+.slider-bg-green-1 ::ng-deep .max .mat-slider-thumb {
+  background-color: green;
+}
+
+.slider-bg-green-2 ::ng-deep .max .mat-slider-thumb-label {
+  background-color: green;
+}
+
+.slider-bg-green-3 ::ng-deep .mat-slider.mat-slider-horizontal .mat-slider-track-fill {
+  height          : 100%;
+  background-color: green;
+}
+
+.slider-bg-green-4 ::ng-deep .mat-slider.mat-slider-horizontal .mat-slider-track-background {
+  height          : 100%;
+  background-color: rgba(138, 137, 136, 0.639);
+}
+
+.slider-bg-purple-1 ::ng-deep .max .mat-slider-thumb {
+  background-color: purple;
+}
+
+.slider-bg-purple-2 ::ng-deep .max .mat-slider-thumb-label {
+  background-color: purple;
+}
+
+.slider-bg-purple-3 ::ng-deep .mat-slider.mat-slider-horizontal .mat-slider-track-fill {
+  height          : 100%;
+  background-color: purple;
+}
+
+.slider-bg-purple-4 ::ng-deep .mat-slider.mat-slider-horizontal .mat-slider-track-background {
+  height          : 100%;
+  background-color: rgba(138, 137, 136, 0.639);
 }

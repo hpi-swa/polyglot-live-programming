@@ -8,7 +8,7 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { pathToFileURL, URLSearchParams } from 'url';
+import { URLSearchParams } from 'url';
 import * as ba from './babylonianAnalysisTypes';
 import { DecorationManager } from './babylonianAnalysisDecorations';
 import { updateObjectExplorer } from './objectExplorer';
@@ -18,7 +18,7 @@ import * as utils from './utils';
 import table from 'markdown-table';
 import { GraalVMExtension } from './@types/graalvm';
 import { readFileSync } from 'fs';
-import { ExtensionContext, window, ViewColumn, Uri } from 'vscode';
+import { ExtensionContext, Uri } from 'vscode';
 import { watch } from 'fs';
 import { join } from 'path';
 import { environment } from './ng-webview/src/environments/environment';
@@ -42,6 +42,8 @@ let lastDidChangeTimeout: NodeJS.Timeout | null = null;
 let panel: vscode.WebviewPanel | null = null;
 let webviewLine: number = 0;
 let webviewIsScrolling: boolean = false;
+let triggeredByTextEditorChange: boolean;
+let previousEditor: vscode.TextEditor;
 
 
 export function initializeBabylonianAnalysis(context: vscode.ExtensionContext, graalVMExtension: vscode.Extension<GraalVMExtension>, uriHandler: UriHandler) {
@@ -64,8 +66,6 @@ export function initializeBabylonianAnalysis(context: vscode.ExtensionContext, g
 					scroll: visibleRanges
 				});
 			}
-		} else {
-			vscode.window.showInformationMessage("Panel is null");
 		}
 	}));
 }
@@ -84,14 +84,14 @@ function handleBabylonianAnalysisResult(result: ba.BabylonianAnalysisResult, isF
 			for (const probe of file.probes) {
 				const decorationType = DECORATIONS.getDecorationType(file.uri, isFinal, probe);
 				const decorationOptions = createDecorationOptions(editor, isFinal, file, probe);
-				editor.setDecorations(decorationType, [decorationOptions]);
+				//editor.setDecorations(decorationType, [decorationOptions]);
 				resultsArray.push(probe);
 			}
 			if (context && !panel) {
 				buildPanel(context);
 			}
 			if (panel) {
-				sendResultsToWebView(resultsArray, panel);
+				sendResultsToWebView(resultsArray, panel, context);
 			}
 		}
 	}
@@ -111,17 +111,13 @@ export function buildPanel(context: ExtensionContext) {
 
 	const matchLinks = /(href|src)="([^"]*)"/g;
 	const toUri = (_: any, prefix: 'href' | 'src', link: string) => {
-		// For <base href="#" />
 		if (link === '#') {
 			return `${prefix}="${link}"`;
 		}
-		// For scripts & links
 		const path = join(context.extensionPath, 'out/ng-webview', link);
 		const uri = Uri.file(path);
 		return `${prefix}="${panelView.webview['asWebviewUri'](uri)}"`;
 	};
-
-	// Refresh the webview on update from the code
 	const updateWebview = async () => {
 		const html = readFileSync(index, 'utf-8');
 		panelView.webview.html = html.replace(matchLinks, toUri);
@@ -141,14 +137,23 @@ export function buildPanel(context: ExtensionContext) {
 		if (e.editLine) {
 			onDidWebviewInputChange(e.editLine, e.line);
 		}
+		if (e.lineNr && e.value && e.name) {
+			onAddExample(e.lineNr, e.name, e.value);
+		}
 	}, undefined, context.subscriptions);
 	panelView.webview.postMessage({
 		editorConfig: getEditorConfig()
 	});
+
+	panelView.onDidDispose(e => {
+		panel = null;
+	});
+
+	onDidChangeActiveTextEditorHandler(context);
 	panel = panelView;
 }
 
-function sendResultsToWebView(result: Array<ba.AbstractProbe>, panelView: vscode.WebviewPanel) {
+function sendResultsToWebView(result: Array<ba.AbstractProbe>, panelView: vscode.WebviewPanel, context: vscode.ExtensionContext | undefined) {
 	const editor = vscode.window.visibleTextEditors;
 	if (editor[0]) {
 		var texteditor = editor[0];
@@ -165,7 +170,22 @@ function sendResultsToWebView(result: Array<ba.AbstractProbe>, panelView: vscode
 			result: result,
 			scroll: texteditor.visibleRanges
 		});
+		panelView.webview.postMessage({
+			editorConfig: getEditorConfig()
+		});
 	}
+}
+
+function onDidChangeActiveTextEditorHandler(context: vscode.ExtensionContext) {
+	vscode.window.onDidChangeActiveTextEditor(e => {
+		if (context && isEnabled) {
+			const editor = vscode.window.activeTextEditor;
+			if (editor && containsExemplifiedCode(editor.document) && editor !== previousEditor) {
+				previousEditor = editor;
+				requestBabylonianAnalysis(editor.document, undefined, undefined, context);
+			}
+		}
+	});
 }
 
 function onDidScrollWebView(line: number) {
@@ -185,6 +205,25 @@ function onDidWebviewInputChange(editLine: string, line: number) {
 		editors[0].edit(editBuilder => {
 			var firstLine = editors[0].document.lineAt(line - 1);
 			editBuilder.replace(new vscode.Range(firstLine.range.start, firstLine.range.end), editLine);
+		}).then(x => {
+			editors[0].document.save();
+		});
+	}
+}
+
+function onAddExample(lineNr: number, name: string, value: string) {
+	const editors = vscode.window.visibleTextEditors;
+	if (editors[0]) {
+		editors[0].edit(editBuilder => {
+			let matches = editors[0].document.lineAt(lineNr - 1).text.match(/(:)*[^(\"|\'|\s)]+=(\"|\')[^(\"|\')]+(\"|\')/g);
+			if (matches) {
+				let valueWrapper = matches[1].split('"')[0];
+				let newExample = '// <Example :name=' + '"' + name + '"' + " " + valueWrapper + '"' + value + '"' + " />\n";
+				editBuilder.insert(new vscode.Position(lineNr - 1, 0), newExample);
+			} else {
+				console.log('Failed to create a new example ...');
+			}
+
 		}).then(x => {
 			editors[0].document.save();
 		});

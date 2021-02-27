@@ -1,37 +1,42 @@
+  /*
+ * Copyright (c) 2021, Software Architecture Group, Hasso Plattner Institute.
+ *
+ * Licensed under the MIT License.
+ */
+  
   .row {
     width: 100%;
     float: left;
   }
-  
+
   .textcontainer {
     position: relative;
-    float: left;
+    float   : left;
   }
-  
+
   .background {
     white-space: pre-wrap;
     opacity    : 0.3;
   }
-  
+
   .paragraph {
     margin-block-start: -0.5em;
-    margin-block-end: 0;
+    margin-block-end  : 0;
   }
 
   ul {
-    list-style-type: none;
-    margin-top: 0px;
+    list-style-type     : none;
+    margin-top          : 0px;
     padding-inline-start: 0px;
-    margin-block-start: 0em;
-    margin-block-end: 0em;
+    margin-block-start  : 0em;
+    margin-block-end    : 0em;
   }
 
   .exampleBox {
     display: flex;
   }
-  
+
   .exampleCheckbox {
     display: flex;
     padding: 0.5em;
   }
-  

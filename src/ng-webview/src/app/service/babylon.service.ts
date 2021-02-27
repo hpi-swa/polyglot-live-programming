@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2021, Software Architecture Group, Hasso Plattner Institute.
+ *
+ * Licensed under the MIT License.
+ */
+
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { BehaviorSubject } from 'rxjs';
@@ -12,24 +18,42 @@ export class BabylonService {
 
   private background: string = " ";
   private resultMap: BehaviorSubject<Array<BabylonExample>>;
+  public colorList: Array<string> = ['orange', 'blue', 'red', 'green', 'purple'];
+  public styleMap: Map<string, string>;
+  public activeSliders: Map<string, string>;
 
   constructor(private communicationService: CommunicationService) {
+    this.activeSliders = new Map();
     this.resultMap = new BehaviorSubject<Array<BabylonExample>>(new Array<BabylonExample>());
     this.communicationService.getAbstractProbes().subscribe(this.handleResult.bind(this));
     this.communicationService.background.subscribe((value) => this.background = value);
   }
 
-  private handleResult(result: Array<AbstractProbe>) {
-    var backgroundRows = this.background.match(/[^\n]*\n[^\n]*?/g);
-    var resultList = new Array<BabylonExample>();
-    if (backgroundRows) {
-      for (var i = 0; i < backgroundRows.length; i++) {
-        var example = this.extractBabylonExample(backgroundRows, i, result);
-        i = example.endLine - 1;
-        resultList.push(example);
+  private isValidResult(result: Array<AbstractProbe>): boolean {
+    let res = true;
+    result.forEach(r => {
+      if (r.examples.length === 0) {
+        res = false;
       }
+    });
+    return res;
+  }
+
+  private handleResult(result: Array<AbstractProbe>) {
+
+    if (this.isValidResult(result)) {
+
+      var backgroundRows = this.background.match(/[^\n]*\n[^\n]*?/g);
+      var resultList = new Array<BabylonExample>();
+      if (backgroundRows) {
+        for (var i = 0; i < backgroundRows.length; i++) {
+          var example = this.extractBabylonExample(backgroundRows, i, result);
+          i = example.endLine - 1;
+          resultList.push(example);
+        }
+      }
+      this.resultMap.next(resultList);
     }
-    this.resultMap.next(resultList);
   }
 
   private extractBabylonExample(backgroundRows: Array<string>, i: number, result: Array<AbstractProbe>) {
@@ -83,5 +107,14 @@ export class BabylonService {
         this.waitForElement(elementId, initialValue, callBack);
       }
     }, 500);
+  }
+
+  public setFontStyles(element: HTMLElement) {
+    element.style.fontFamily = this.styleMap.get('fontFamily');
+    element.style.fontSize = this.styleMap.get('fontSize');
+    element.style.fontWeight = this.styleMap.get('fontWeight');
+    element.style.letterSpacing = this.styleMap.get('letterSpacing');
+    element.style.fontFeatureSettings = this.styleMap.get('fontFeatureSettings');
+    element.style.lineHeight = this.styleMap.get('lineHeight');
   }
 }

@@ -1,0 +1,27 @@
+<!--
+ * Copyright (c) 2021, Software Architecture Group, Hasso Plattner Institute.
+ *
+ * Licensed under the MIT License.
+ -->
+ 
+<button (click)="openDialog()" class="button button5">+</button>
+
+<ng-template>
+  <div class="example-dialog-content" cdkDrag cdkDragRootElement=".cdk-overlay-pane">
+    <div class="form-group">
+      <h3>Add a new example!</h3>
+      <form #userForm="ngForm" (ngSubmit)="onSubmit(userForm.value)">
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" name="name" ngModel placeholder="Unique name">
+        </div>
+        <div class="form-group">
+          <label>Value</label>
+          <input type="text" name="value" ngModel placeholder="Value">
+        </div>
+        <input type="submit" value="Add">
+      </form>
+    </div>
+
+  </div>
+</ng-template>

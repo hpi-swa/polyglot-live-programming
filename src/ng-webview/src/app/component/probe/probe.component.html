@@ -1,15 +1,42 @@
+<!--
+ * Copyright (c) 2021, Software Architecture Group, Hasso Plattner Institute.
+ *
+ * Licensed under the MIT License.
+ -->
+ 
 <div id="probe_container" (mouseover)="displaySlider()" (mouseout)="hideSlider()">
     <div *ngIf="showSlider===true" class="slidercontainer" id="slidercontainer{{ babylon.line }}">
         <div *ngFor="let example of probeValues | keyvalue">
-            <span [ngStyle]="{'margin-left': leftMargin}" ></span>
-            <mat-slider class="max" *ngIf="example.value.max > 1"[id]="example.value.sliderId" [style.marginBottom]="'-1.25em'" 
-                [style.marginTop]="'-0.5em'" thumbLabel [displayWith]="updateSliderLabel" [value]="example.value.defaultValue" 
-                (input)="onSliderChange($event, example.key)" tickInterval="0" min="1" max="{{ example.value.max }}">
-            </mat-slider>
-            <span [style.color]="example.value.color" class="text" *ngIf="example.value.max === 1">{{ example.key }}: </span>
-            <span [style.color]="example.value.color" class="text" id="{{ example.value.sliderTextFieldId }}">{{ example.value.textInput }}</span>
+            <div [ngClass]="['slider-bg-' + example.value.color + '-1', 'slider-bg-' + example.value.color + '-2', 'slider-bg-' + example.value.color + '-3', 'slider-bg-' + example.value.color + '-4']"
+                cdkDrag (cdkDragReleased)="drop(example.value.color, babylon.line)">
+                <span id="slider_span_{{ example.value.color }}{{ babylon.line }}"
+                    [ngStyle]="{'margin-left': leftMargin}"></span>
+                <div [ngStyle]="greyOutBackground()"
+                    [id]="'sliderDiv_' + example.value.color + babylon.line.toString()">
+                    <mat-slider class="max" *ngIf="example.value.max > 1"
+                        [id]="'slider_' + example.value.color + babylon.line" [style.marginBottom]="'-1em'"
+                        [style.marginTop]="'-1em'" thumbLabel [displayWith]="updateSliderLabel"
+                        [value]="example.value.defaultValue" (input)="onSliderChange($event, example.key)"
+                        tickInterval="0" min="1" max="{{ example.value.max }}">
+                    </mat-slider>
+                    <span [style.color]="example.value.color" class="text" *ngIf="example.value.max === 1">{{
+                        example.key
+                        }}:
+                    </span>
+                    <span class="text" [style.marginLeft]="'5px'" id="{{ example.value.sliderTextFieldId }}">{{
+                        example.value.textInput }}</span>
+                    <div class="example-handle" cdkDragHandle>
+                        <svg width="10px" fill="currentColor" viewBox="0 0 24 24">
+                            <path
+                                d="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z">
+                            </path>
+                            <path d="M0 0h24v24H0z" fill="none"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     <span id="background{{ babylon.line }}" *ngIf="showSlider===false" class="border-highlight background paragraph"
-        [ngStyle]="{'margin-left': leftMargin}">{{ lineText }}</span>
+        [ngStyle]="getFontStyles()">{{ lineText }}</span>
 </div>

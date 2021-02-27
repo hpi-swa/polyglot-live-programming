@@ -5,21 +5,21 @@
  */
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { AssertionComponent } from './assertion.component';
+import { ExampleCreatorComponent } from './example-creator.component';
 
-describe('AssertionComponent', () => {
-  let component: AssertionComponent;
-  let fixture: ComponentFixture<AssertionComponent>;
+describe('ExampleCreatorComponent', () => {
+  let component: ExampleCreatorComponent;
+  let fixture: ComponentFixture<ExampleCreatorComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ AssertionComponent ]
+      declarations: [ExampleCreatorComponent]
     })
-    .compileComponents();
+      .compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(AssertionComponent);
+    fixture = TestBed.createComponent(ExampleCreatorComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2021, Software Architecture Group, Hasso Plattner Institute.
+ *
+ * Licensed under the MIT License.
+ */
+
 import { Injectable } from '@angular/core';
 import { EventManager } from '@angular/platform-browser';
 import { Scroll } from '@angular/router';

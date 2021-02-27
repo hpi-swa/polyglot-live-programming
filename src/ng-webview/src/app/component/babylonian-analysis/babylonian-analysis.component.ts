@@ -1,6 +1,10 @@
-import { Component, OnInit } from '@angular/core';
-import { MatSliderChange } from '@angular/material/slider';
+/*
+ * Copyright (c) 2021, Software Architecture Group, Hasso Plattner Institute.
+ *
+ * Licensed under the MIT License.
+ */
 
+import { Component, OnInit } from '@angular/core';
 import { CommunicationService } from 'src/app/service/communication.service';
 import { BabylonService } from 'src/app/service/babylon.service';
 import { BabylonExample, BabylonRow } from 'src/app/model/babylon.model';
@@ -11,7 +15,7 @@ import { BabylonExample, BabylonRow } from 'src/app/model/babylon.model';
     templateUrl: './babylonian-analysis.component.html',
     styleUrls: ['./babylonian-analysis.component.css']
 })
-export class BabylonianAnalysisComponent implements OnInit  {
+export class BabylonianAnalysisComponent implements OnInit {
     public textArea: string = 'webViewText';
     public editorConfig: Array<string>;
     result: Array<BabylonExample>;
@@ -22,14 +26,27 @@ export class BabylonianAnalysisComponent implements OnInit  {
         this.babylonService.getResultMap().subscribe((value) => this.result = value);
         this.communicationService.getEditorConfig().subscribe((value) => {
             this.editorConfig = value;
-            this.babylonService.waitForElement('container', this.editorConfig, function () {
-                document.getElementById(arguments[0]).style.fontFamily = arguments[1][0];
-                document.getElementById(arguments[0]).style.fontSize = arguments[1][1] + 'px';
-                Array.from(document.getElementsByClassName('paragraph')).forEach(element => {
-                    ((element) as HTMLElement).style.fontSize = arguments[1][1] + 'px';
-                });
-            });
+            if (value.length > 1) {
+                this.buildStyleMap();
+            }
+
         });
+    }
+
+    private buildStyleMap() {
+        this.babylonService.styleMap = new Map();
+        if (this.editorConfig[0]) {
+            this.babylonService.styleMap.set('font-family', this.editorConfig[0]);
+
+        }
+        if (this.editorConfig[1]) {
+            let lineHeight = parseInt(this.editorConfig[1]) * 1.5;
+            this.babylonService.styleMap.set('font-size', this.editorConfig[1] + 'px');
+            this.babylonService.styleMap.set('line-height', lineHeight.toString() + 'px');
+        }
+        this.babylonService.styleMap.set('font-weight', 'normal');
+        this.babylonService.styleMap.set('letter-spacing', '0px');
+        this.babylonService.styleMap.set('font-feature-settings', 'liga:0, calt:0');
     }
 }
 

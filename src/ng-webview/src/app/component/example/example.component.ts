@@ -1,5 +1,11 @@
-import { Input } from '@angular/core';
-import { Component, OnInit } from '@angular/core';
+/*
+ * Copyright (c) 2021, Software Architecture Group, Hasso Plattner Institute.
+ *
+ * Licensed under the MIT License.
+ */
+
+import { Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component } from '@angular/core';
 import { BabylonRow } from 'src/app/model/babylon.model';
 import { BabylonService } from 'src/app/service/babylon.service';
 
@@ -8,7 +14,7 @@ import { BabylonService } from 'src/app/service/babylon.service';
   templateUrl: './example.component.html',
   styleUrls: ['./example.component.css']
 })
-export class ExampleComponent implements OnInit {
+export class ExampleComponent implements OnChanges {
 
   @Input() babylon: BabylonRow;
 
@@ -18,22 +24,29 @@ export class ExampleComponent implements OnInit {
   inputs: Map<string, string>;
   selected: string;
   result: string;
+  lineNr: number;
+
+  babylonTest: BabylonRow;
 
 
   constructor(private babylonService: BabylonService) { }
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.babylon) {
+      this.babylonTest = changes.babylon.currentValue;
+      this.lineNr = this.babylonTest.line;
+      this.name = this.babylonTest.examples[0].exampleName;
+      this.inputs = this.getInitalValues();
+      this.result = this.babylonTest.examples[0].observedValues[0].displayString;
+    }
 
-  ngOnInit(): void {
-    this.name = this.babylon.examples[0].exampleName;
-    this.inputs = this.getInitalValues();
-    this.result = this.babylon.examples[0].observedValues[0].displayString;
   }
 
   private toText() {
     var exampleText = '// <Example';
+    exampleText = exampleText.concat(' :name="' + this.name + '" ');
     this.inputs.forEach((value, key) => {
-      exampleText = exampleText.concat('  ' + key + '="' + value + '" ');
+      exampleText = exampleText.concat(key + '="' + value + '"');
     });
-    exampleText = exampleText.concat('  :name="' + this.name + '" ');
     return exampleText.concat(' />');
   }
 
@@ -45,7 +58,7 @@ export class ExampleComponent implements OnInit {
   public onKey(event: any) {
     this.inputs.set(event.target.getAttribute('name'), event.target.value);
   }
-  
+
   public onSubmit() {
     this.babylonService.updateResultMap(this.babylon.line, this.toText());
   }
@@ -61,6 +74,10 @@ export class ExampleComponent implements OnInit {
       }
     });
     return inputs;
+  }
+
+  public getFontStyles() {
+    return this.babylonService.styleMap;
   }
 
 }

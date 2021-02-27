@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2021, Software Architecture Group, Hasso Plattner Institute.
+ *
+ * Licensed under the MIT License.
+ */
+
 import { Injectable } from '@angular/core';
 import { EventManager } from '@angular/platform-browser';
 import { Observable } from 'rxjs';
@@ -29,17 +35,17 @@ export class CommunicationService {
     this.vscode = messagePoster;
   }
 
-  private onMessage(event) {
+  private async onMessage(event) {
     const message = event.data;
     if (message.background) {
       this.background.next(message.background);
-    } 
+    }
     if (message.result) {
       this.abstractProbes.next(message.result);
     }
     if (message.editorConfig) {
       this.editorConfig.next(message.editorConfig);
-    } 
+    }
     if (message.scroll) {
       var lineNum = Number(message.scroll[0][0].line);
       this.editorLine.next(lineNum);
@@ -50,15 +56,15 @@ export class CommunicationService {
     this.vscode.postMessage(body);
   }
 
-  getAbstractProbes() : Observable<Array<AbstractProbe>> {
+  getAbstractProbes(): Observable<Array<AbstractProbe>> {
     return this.abstractProbes.asObservable();
   }
 
-  getBackground() : Observable<string> {
+  getBackground(): Observable<string> {
     return this.background.asObservable();
   }
 
-  getEditorConfig() : Observable<Array<string>> {
+  getEditorConfig(): Observable<Array<string>> {
     return this.editorConfig.asObservable();
   }
 }

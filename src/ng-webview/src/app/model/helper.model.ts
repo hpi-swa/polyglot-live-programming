@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2021, Software Architecture Group, Hasso Plattner Institute.
+ *
+ * Licensed under the MIT License.
+ */
+
 import { BabylonRow } from "./babylon.model";
 
 export class Probe {
@@ -47,15 +53,15 @@ export class SelectedExampleWrapper {
         this.color = attributes.color;
     }
 
-    public static inSelectedExample(selectedExamples : Array<SelectedExampleWrapper>, key: string) {
+    public static inSelectedExample(selectedExamples: Array<SelectedExampleWrapper>, key: string) {
         let bool = false;
         selectedExamples.forEach((value) => {
-          if(key === value.name) {
-            bool = true;
-          }
+            if (key === value.name) {
+                bool = true;
+            }
         });
         return bool;
-      }
+    }
 }
 
 export class Example {
