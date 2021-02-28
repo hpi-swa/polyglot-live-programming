@@ -11,7 +11,7 @@
 		{
 			"label": "WatchMode",
 			"type": "npm",
-			"script": "watch",
+			"script": "watchMode",
 			"problemMatcher": "$tsc-watch",
 			"isBackground": true,
 			"presentation": {
