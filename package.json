@@ -99,7 +99,7 @@
 		"watchMode": "tsc -watch -p ./",
 		"pretest": "npm run compile && npm run lint",
 		"test": "node ./out/test/runTest.js",
-		"ngBuild": "cd ./src/ng-webview && ng build ng-webview",
+		"ngBuild": "cd ./src/ng-webview && ng build ng-webview --prod",
 		"ngBuildWatch": "cd ./src/ng-webview && ng build ng-webview --prod --watch"
 	},
 	"dependencies": {
